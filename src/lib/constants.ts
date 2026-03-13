@@ -18,22 +18,22 @@ export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 
 export const STATUS_CONFIG: Record<
   TaskStatus,
-  { label: string; color: string; bgColor: string; textColor: string; icon: string }
+  { label: string; color: string; hex: string; bgColor: string; textColor: string; icon: string }
 > = {
-  TODO: { label: "To Do", color: "#94a3b8", bgColor: "bg-slate-100", textColor: "text-slate-600", icon: "Circle" },
-  IN_PROGRESS: { label: "In Progress", color: "#0ea5e9", bgColor: "bg-sky-100", textColor: "text-sky-600", icon: "PlayCircle" },
-  REVIEW: { label: "Review", color: "#8b5cf6", bgColor: "bg-violet-100", textColor: "text-violet-600", icon: "Eye" },
-  DONE: { label: "Done", color: "#10b981", bgColor: "bg-emerald-100", textColor: "text-emerald-600", icon: "CheckCircle2" },
+  TODO: { label: "К выполнению", color: "slate", hex: "#94a3b8", bgColor: "bg-slate-100", textColor: "text-slate-600", icon: "Circle" },
+  IN_PROGRESS: { label: "В работе", color: "sky", hex: "#0ea5e9", bgColor: "bg-sky-100", textColor: "text-sky-600", icon: "PlayCircle" },
+  REVIEW: { label: "На проверке", color: "violet", hex: "#8b5cf6", bgColor: "bg-violet-100", textColor: "text-violet-600", icon: "Eye" },
+  DONE: { label: "Готово", color: "emerald", hex: "#10b981", bgColor: "bg-emerald-100", textColor: "text-emerald-600", icon: "CheckCircle2" },
 };
 
 export const PRIORITY_CONFIG: Record<
   TaskPriority,
-  { label: string; color: string; bgColor: string; textColor: string }
+  { label: string; color: string; hex: string; bgColor: string; textColor: string }
 > = {
-  LOW: { label: "Low", color: "#94a3b8", bgColor: "bg-slate-100", textColor: "text-slate-600" },
-  MEDIUM: { label: "Medium", color: "#3b82f6", bgColor: "bg-blue-100", textColor: "text-blue-600" },
-  HIGH: { label: "High", color: "#f59e0b", bgColor: "bg-amber-100", textColor: "text-amber-600" },
-  URGENT: { label: "Urgent", color: "#f43f5e", bgColor: "bg-rose-100", textColor: "text-rose-600" },
+  LOW: { label: "Низкий", color: "slate", hex: "#94a3b8", bgColor: "bg-slate-100", textColor: "text-slate-600" },
+  MEDIUM: { label: "Средний", color: "blue", hex: "#3b82f6", bgColor: "bg-blue-100", textColor: "text-blue-600" },
+  HIGH: { label: "Высокий", color: "amber", hex: "#f59e0b", bgColor: "bg-amber-100", textColor: "text-amber-600" },
+  URGENT: { label: "Критичный", color: "rose", hex: "#f43f5e", bgColor: "bg-rose-100", textColor: "text-rose-600" },
 };
 
 export const PROJECT_COLORS = [

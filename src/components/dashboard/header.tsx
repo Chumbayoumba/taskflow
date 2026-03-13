@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
@@ -15,6 +16,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -22,6 +24,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { useNotifications } from "@/hooks/use-notifications";
+import { SearchDialog } from "@/components/search/search-dialog";
 import { cn } from "@/lib/utils";
 
 const pageTitles: Record<string, string> = {
@@ -75,6 +78,7 @@ export function Header() {
   const pathname = usePathname();
   const user = useCurrentUser();
   const { unreadCount } = useNotifications();
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const initials = user?.name
     ? user.name
@@ -97,14 +101,16 @@ export function Header() {
 
       {/* Right: search, notifications, user */}
       <div className="flex items-center gap-2">
-        {/* Search (placeholder) */}
+        {/* Search */}
         <Button
           variant="ghost"
           size="icon"
           className="hidden text-muted-foreground hover:text-foreground sm:inline-flex"
+          onClick={() => setSearchOpen(true)}
         >
           <Search className="size-5" />
         </Button>
+        <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
 
         {/* Notifications */}
         <Button
@@ -138,14 +144,16 @@ export function Header() {
             </span>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" sideOffset={8}>
-            <DropdownMenuLabel>
-              <div className="flex flex-col">
-                <span className="text-sm font-medium">{user?.name}</span>
-                <span className="text-xs text-muted-foreground">
-                  {user?.email}
-                </span>
-              </div>
-            </DropdownMenuLabel>
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium">{user?.name}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {user?.email}
+                  </span>
+                </div>
+              </DropdownMenuLabel>
+            </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem render={<Link href="/dashboard" />}>
               <UserIcon className="size-4" />
@@ -157,7 +165,7 @@ export function Header() {
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => signOut({ callbackUrl: "/auth/login" })}
+              onClick={() => signOut({ callbackUrl: "/login" })}
               variant="destructive"
             >
               <LogOut className="size-4" />

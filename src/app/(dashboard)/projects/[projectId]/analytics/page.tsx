@@ -57,25 +57,17 @@ export default async function AnalyticsPage({ params }: AnalyticsPageProps) {
   const statusData = Object.entries(STATUS_CONFIG).map(([key, config]) => ({
     name: config.label,
     value: statusCounts.find((s) => s.status === key)?._count ?? 0,
-    color: config.color,
+    color: config.hex,
   }));
 
   const priorityData = Object.entries(PRIORITY_CONFIG).map(([key, config]) => ({
     name: config.label,
     value: priorityCounts.find((p) => p.priority === key)?._count ?? 0,
-    color: config.color,
+    color: config.hex,
   }));
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <div
-          className="w-4 h-4 rounded-md"
-          style={{ backgroundColor: project.color }}
-        />
-        <h1 className="text-2xl font-bold">{project.name} — Аналитика</h1>
-      </div>
-
       {/* Completion rate */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>

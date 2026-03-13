@@ -40,16 +40,5 @@ export default async function BoardPage({ params }: BoardPageProps) {
     avatarUrl: m.user.avatarUrl,
   }));
 
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <div
-          className="w-4 h-4 rounded-md"
-          style={{ backgroundColor: project.color }}
-        />
-        <h1 className="text-2xl font-bold">{project.name}</h1>
-      </div>
-      <Board projectId={projectId} members={members} />
-    </div>
-  );
+  return <Board projectId={projectId} members={members} />;
 }

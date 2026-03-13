@@ -6,17 +6,31 @@ import { PRIORITY_CONFIG, type TaskPriority } from "@/lib/constants";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { GripVertical, Calendar, AlertCircle } from "lucide-react";
+import { GripVertical, Calendar, AlertCircle, Flame, ArrowUp, Minus, ArrowDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { TaskWithRelations } from "@/types";
 
 const PRIORITY_BADGE_STYLES: Record<string, string> = {
   slate:
-    "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700",
-  blue: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 border-blue-200 dark:border-blue-800",
+    "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700",
+  blue: "bg-blue-50 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300 border-blue-200 dark:border-blue-800",
   amber:
-    "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300 border-amber-200 dark:border-amber-800",
-  rose: "bg-rose-100 text-rose-700 dark:bg-rose-900 dark:text-rose-300 border-rose-200 dark:border-rose-800",
+    "bg-amber-50 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300 border-amber-200 dark:border-amber-800",
+  rose: "bg-rose-50 text-rose-700 dark:bg-rose-900/60 dark:text-rose-300 border-rose-200 dark:border-rose-800",
+};
+
+const PRIORITY_LEFT_BORDER: Record<string, string> = {
+  slate: "border-l-slate-300 dark:border-l-slate-600",
+  blue: "border-l-blue-400 dark:border-l-blue-500",
+  amber: "border-l-amber-400 dark:border-l-amber-500",
+  rose: "border-l-rose-500 dark:border-l-rose-400",
+};
+
+const PRIORITY_ICONS: Record<string, React.ElementType> = {
+  slate: ArrowDown,
+  blue: Minus,
+  amber: ArrowUp,
+  rose: Flame,
 };
 
 function getDeadlineInfo(deadline: string | Date | null) {
@@ -59,6 +73,7 @@ interface TaskCardProps {
 export function TaskCard({ task, onDragStart, onClick }: TaskCardProps) {
   const priorityConfig = PRIORITY_CONFIG[task.priority as TaskPriority];
   const deadline = getDeadlineInfo(task.deadline);
+  const PriorityIcon = priorityConfig ? PRIORITY_ICONS[priorityConfig.color] : null;
 
   return (
     <Card
@@ -69,7 +84,13 @@ export function TaskCard({ task, onDragStart, onClick }: TaskCardProps) {
         onDragStart();
       }}
       onClick={onClick}
-      className="cursor-pointer hover:shadow-md transition-shadow group border bg-card"
+      className={cn(
+        "cursor-pointer border-l-[3px] transition-all duration-200 group",
+        "hover:shadow-md hover:-translate-y-0.5",
+        "active:shadow-sm active:translate-y-0",
+        "bg-card",
+        priorityConfig ? PRIORITY_LEFT_BORDER[priorityConfig.color] : "border-l-transparent"
+      )}
     >
       <CardContent className="p-3 space-y-2.5">
         {/* Drag handle + Title */}
@@ -85,10 +106,11 @@ export function TaskCard({ task, onDragStart, onClick }: TaskCardProps) {
           <Badge
             variant="outline"
             className={cn(
-              "text-[10px] px-1.5 py-0 font-medium",
+              "text-[10px] px-1.5 py-0 font-medium gap-1",
               PRIORITY_BADGE_STYLES[priorityConfig.color]
             )}
           >
+            {PriorityIcon && <PriorityIcon className="h-2.5 w-2.5" />}
             {priorityConfig.label}
           </Badge>
         )}
@@ -100,7 +122,7 @@ export function TaskCard({ task, onDragStart, onClick }: TaskCardProps) {
             <div className="flex items-center gap-1.5">
               <Avatar className="h-5 w-5">
                 <AvatarImage src={task.assignee.avatarUrl ?? undefined} />
-                <AvatarFallback className="text-[9px]">
+                <AvatarFallback className="text-[9px] bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300">
                   {getInitials(task.assignee.name)}
                 </AvatarFallback>
               </Avatar>
@@ -116,12 +138,12 @@ export function TaskCard({ task, onDragStart, onClick }: TaskCardProps) {
           {deadline && (
             <div
               className={cn(
-                "flex items-center gap-1 text-[11px]",
+                "flex items-center gap-1 text-[11px] font-medium",
                 deadline.colorClass
               )}
             >
               {deadline.isOverdue ? (
-                <AlertCircle className="h-3 w-3" />
+                <AlertCircle className="h-3 w-3 animate-pulse" />
               ) : (
                 <Calendar className="h-3 w-3" />
               )}

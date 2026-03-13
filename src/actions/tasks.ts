@@ -30,11 +30,12 @@ export async function createTask(
     return { success: false, error: "Нет доступа к проекту" };
   }
 
+  const rawAssigneeId = formData.get("assigneeId") as string | null;
   const parsed = createTaskSchema.safeParse({
     title: formData.get("title"),
     description: formData.get("description") || undefined,
     priority: formData.get("priority") || "MEDIUM",
-    assigneeId: formData.get("assigneeId") || undefined,
+    assigneeId: rawAssigneeId && rawAssigneeId !== "unassigned" ? rawAssigneeId : undefined,
     deadline: formData.get("deadline") || undefined,
   });
 
@@ -103,18 +104,22 @@ export async function updateTask(
   if (description !== null) data.description = description || null;
   if (priority) data.priority = priority;
   if (status) data.status = status;
-  if (assigneeId !== null) data.assigneeId = assigneeId || null;
-  if (deadline !== null)
-    data.deadline = deadline ? new Date(deadline as string) : null;
+  if (assigneeId !== null) data.assigneeId = (assigneeId && assigneeId !== "unassigned") ? assigneeId : null;
+  if (deadline !== null) data.deadline = (deadline as string) || null;
 
   const parsed = updateTaskSchema.safeParse(data);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0].message };
   }
 
+  const updateData: Record<string, unknown> = { ...parsed.data };
+  if (typeof updateData.deadline === "string") {
+    updateData.deadline = new Date(updateData.deadline);
+  }
+
   await prisma.task.update({
     where: { id: taskId },
-    data: parsed.data as Record<string, unknown>,
+    data: updateData,
   });
 
   // Notifications
@@ -135,16 +140,17 @@ export async function updateTask(
     }
   }
 
+  const newAssigneeId = updateData.assigneeId as string | null | undefined;
   if (
-    assigneeId &&
-    assigneeId !== task.assigneeId &&
-    assigneeId !== userId
+    newAssigneeId &&
+    newAssigneeId !== task.assigneeId &&
+    newAssigneeId !== userId
   ) {
     await prisma.notification.create({
       data: {
         type: "TASK_ASSIGNED",
         message: `Вам назначена задача: ${task.title}`,
-        userId: assigneeId as string,
+        userId: newAssigneeId,
         taskId,
       },
     });

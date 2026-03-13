@@ -13,6 +13,7 @@ import {
   LogOut,
   CheckSquare,
   Menu,
+  Settings,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -37,6 +38,7 @@ const navItems = [
   { href: "/dashboard", label: "Дашборд", icon: LayoutDashboard },
   { href: "/projects", label: "Проекты", icon: FolderKanban },
   { href: "/notifications", label: "Уведомления", icon: Bell },
+  { href: "/settings", label: "Настройки", icon: Settings },
 ];
 
 function SidebarContent({
@@ -63,10 +65,12 @@ function SidebarContent({
     <div className="flex h-full flex-col bg-slate-900 text-white">
       {/* Logo */}
       <div className="flex h-16 items-center gap-2 px-4">
-        <CheckSquare className="size-6 shrink-0 text-indigo-400" />
-        {!collapsed && (
-          <span className="text-lg font-bold tracking-tight">TaskFlow</span>
-        )}
+        <Link href="/dashboard" className="flex items-center gap-2">
+          <CheckSquare className="size-6 shrink-0 text-indigo-400" />
+          {!collapsed && (
+            <span className="text-lg font-bold tracking-tight">TaskFlow</span>
+          )}
+        </Link>
         {onToggle && (
           <Button
             variant="ghost"
@@ -143,7 +147,7 @@ function SidebarContent({
               <TooltipTrigger
                 render={
                   <button
-                    onClick={() => signOut({ callbackUrl: "/auth/login" })}
+                    onClick={() => signOut({ callbackUrl: "/login" })}
                     className="rounded-lg p-1 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
                   />
                 }
@@ -171,7 +175,7 @@ function SidebarContent({
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => signOut({ callbackUrl: "/auth/login" })}
+              onClick={() => signOut({ callbackUrl: "/login" })}
               className="size-8 shrink-0 text-slate-400 hover:bg-slate-800 hover:text-white"
             >
               <LogOut className="size-4" />

@@ -14,6 +14,13 @@ async function getCurrentUserId(): Promise<string> {
 export async function getNotifications(): Promise<NotificationWithTask[]> {
   const userId = await getCurrentUserId();
 
+  // Auto-check deadlines on every notification fetch
+  try {
+    await checkDeadlines();
+  } catch {
+    // Don't block notification fetch if deadline check fails
+  }
+
   return prisma.notification.findMany({
     where: { userId },
     include: {

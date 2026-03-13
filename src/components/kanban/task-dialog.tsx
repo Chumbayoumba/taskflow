@@ -18,7 +18,6 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select";
 import {
   createTask,
@@ -31,7 +30,7 @@ import {
   PRIORITY_CONFIG,
   type TaskPriority,
 } from "@/lib/constants";
-import { Loader2, Trash2 } from "lucide-react";
+import { Loader2, Trash2, User, Flag } from "lucide-react";
 import type { TaskWithRelations } from "@/types";
 
 interface TaskDialogProps {
@@ -59,11 +58,17 @@ export function TaskDialog({
 
   const [isPending, startTransition] = useTransition();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [priority, setPriority] = useState<string>(task?.priority ?? "MEDIUM");
+  const [assigneeId, setAssigneeId] = useState<string>(task?.assigneeId ?? "unassigned");
 
-  // Format deadline for date input (YYYY-MM-DD)
   const deadlineDefault = task?.deadline
     ? new Date(task.deadline).toISOString().split("T")[0]
     : "";
+
+  const priorityLabel = PRIORITY_CONFIG[priority as TaskPriority]?.label ?? "Средний";
+  const assigneeLabel = assigneeId === "unassigned"
+    ? "Не назначен"
+    : members.find((m) => m.id === assigneeId)?.name ?? "Назначить...";
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -92,7 +97,6 @@ export function TaskDialog({
       } else {
         const result = await createTask(projectId, formData);
         if (result.success) {
-          // Refetch to get the full task with relations
           const { getProjectTasks } = await import("@/actions/tasks");
           const tasks = await getProjectTasks(projectId);
           const { setTasks } = useKanbanStore.getState();
@@ -120,54 +124,56 @@ export function TaskDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit Task" : "Create Task"}</DialogTitle>
+          <DialogTitle>
+            {isEdit ? "Редактировать задачу" : "Создать задачу"}
+          </DialogTitle>
           <DialogDescription>
             {isEdit
-              ? "Update the task details below."
-              : "Fill in the details to create a new task."}
+              ? "Измените данные задачи ниже."
+              : "Заполните данные для создания новой задачи."}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Title */}
           <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
+            <Label htmlFor="title">Название</Label>
             <Input
               id="title"
               name="title"
-              placeholder="Task title"
+              placeholder="Название задачи"
               defaultValue={task?.title ?? ""}
               required
             />
           </div>
 
-          {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">Описание</Label>
             <Textarea
               id="description"
               name="description"
-              placeholder="Describe the task..."
+              placeholder="Опишите задачу..."
               rows={3}
               defaultValue={task?.description ?? ""}
             />
           </div>
 
-          {/* Priority + Assignee row */}
           <div className="grid grid-cols-2 gap-4">
-            {/* Priority */}
             <div className="space-y-2">
-              <Label htmlFor="priority">Priority</Label>
+              <Label>Приоритет</Label>
+              <input type="hidden" name="priority" value={priority} />
               <Select
-                name="priority"
-                defaultValue={task?.priority ?? "MEDIUM"}
+                value={priority}
+                onValueChange={(v: string | null) => setPriority(v ?? "MEDIUM")}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select priority" />
+                  <span className="flex items-center gap-1.5 flex-1 text-left truncate">
+                    <Flag className="h-3.5 w-3.5 shrink-0" />
+                    {priorityLabel}
+                  </span>
                 </SelectTrigger>
                 <SelectContent>
                   {TASK_PRIORITIES.map((p) => (
-                    <SelectItem key={p} value={p}>
+                    <SelectItem key={p} value={p} label={PRIORITY_CONFIG[p].label}>
                       {PRIORITY_CONFIG[p].label}
                     </SelectItem>
                   ))}
@@ -175,20 +181,25 @@ export function TaskDialog({
               </Select>
             </div>
 
-            {/* Assignee */}
             <div className="space-y-2">
-              <Label htmlFor="assigneeId">Assignee</Label>
+              <Label>Исполнитель</Label>
+              <input type="hidden" name="assigneeId" value={assigneeId === "unassigned" ? "" : assigneeId} />
               <Select
-                name="assigneeId"
-                defaultValue={task?.assigneeId ?? "unassigned"}
+                value={assigneeId}
+                onValueChange={(v: string | null) => setAssigneeId(v ?? "unassigned")}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Assign to..." />
+                  <span className="flex items-center gap-1.5 flex-1 text-left truncate">
+                    <User className="h-3.5 w-3.5 shrink-0" />
+                    {assigneeLabel}
+                  </span>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="unassigned">Unassigned</SelectItem>
+                  <SelectItem value="unassigned" label="Не назначен">
+                    Не назначен
+                  </SelectItem>
                   {members.map((m) => (
-                    <SelectItem key={m.id} value={m.id}>
+                    <SelectItem key={m.id} value={m.id} label={m.name}>
                       {m.name}
                     </SelectItem>
                   ))}
@@ -197,9 +208,8 @@ export function TaskDialog({
             </div>
           </div>
 
-          {/* Deadline */}
           <div className="space-y-2">
-            <Label htmlFor="deadline">Deadline</Label>
+            <Label htmlFor="deadline">Дедлайн</Label>
             <Input
               id="deadline"
               name="deadline"
@@ -208,7 +218,6 @@ export function TaskDialog({
             />
           </div>
 
-          {/* Actions */}
           <DialogFooter className="gap-2 sm:gap-0">
             {isEdit && !showDeleteConfirm && (
               <Button
@@ -220,13 +229,13 @@ export function TaskDialog({
                 className="mr-auto"
               >
                 <Trash2 className="h-4 w-4 mr-1" />
-                Delete
+                Удалить
               </Button>
             )}
 
             {showDeleteConfirm && (
               <div className="flex items-center gap-2 mr-auto">
-                <span className="text-sm text-destructive">Are you sure?</span>
+                <span className="text-sm text-destructive">Вы уверены?</span>
                 <Button
                   type="button"
                   variant="destructive"
@@ -237,7 +246,7 @@ export function TaskDialog({
                   {isPending ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    "Confirm"
+                    "Да"
                   )}
                 </Button>
                 <Button
@@ -247,7 +256,7 @@ export function TaskDialog({
                   onClick={() => setShowDeleteConfirm(false)}
                   disabled={isPending}
                 >
-                  Cancel
+                  Нет
                 </Button>
               </div>
             )}
@@ -258,11 +267,11 @@ export function TaskDialog({
               onClick={() => onOpenChange(false)}
               disabled={isPending}
             >
-              Cancel
+              Отмена
             </Button>
             <Button type="submit" disabled={isPending}>
               {isPending && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
-              {isEdit ? "Update" : "Create"}
+              {isEdit ? "Сохранить" : "Создать"}
             </Button>
           </DialogFooter>
         </form>

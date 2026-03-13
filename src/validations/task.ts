@@ -6,7 +6,7 @@ export const createTaskSchema = z.object({
   description: z.string().max(2000).optional(),
   priority: z.enum(TASK_PRIORITIES).default("MEDIUM"),
   assigneeId: z.string().optional(),
-  deadline: z.string().datetime().optional().nullable(),
+  deadline: z.string().optional().nullable(),
 });
 
 export const updateTaskSchema = createTaskSchema.partial().extend({

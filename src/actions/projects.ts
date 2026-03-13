@@ -197,3 +197,39 @@ export async function removeMember(
   revalidatePath(`/projects/${projectId}/members`);
   return { success: true, data: undefined };
 }
+
+export async function changeMemberRole(
+  projectId: string,
+  targetUserId: string,
+  newRole: string
+): Promise<ActionResult> {
+  const userId = await getCurrentUserId();
+
+  // Only OWNER can change roles
+  const callerMember = await prisma.projectMember.findFirst({
+    where: { projectId, userId, role: "OWNER" },
+  });
+  if (!callerMember) return { success: false, error: "Только владелец может менять роли" };
+
+  if (targetUserId === userId) {
+    return { success: false, error: "Нельзя изменить свою роль" };
+  }
+
+  if (!["ADMIN", "MEMBER"].includes(newRole)) {
+    return { success: false, error: "Недопустимая роль" };
+  }
+
+  const targetMember = await prisma.projectMember.findFirst({
+    where: { projectId, userId: targetUserId },
+  });
+  if (!targetMember) return { success: false, error: "Участник не найден" };
+  if (targetMember.role === "OWNER") return { success: false, error: "Нельзя изменить роль владельца" };
+
+  await prisma.projectMember.updateMany({
+    where: { projectId, userId: targetUserId },
+    data: { role: newRole },
+  });
+
+  revalidatePath(`/projects/${projectId}/members`);
+  return { success: true, data: undefined };
+}

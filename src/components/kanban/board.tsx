@@ -105,7 +105,7 @@ export function Board({ projectId, members }: BoardProps) {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold">Kanban Board</h2>
+        <h2 className="text-xl font-semibold">Канбан-доска</h2>
         <Button
           onClick={() => {
             setEditingTask(null);
@@ -114,7 +114,7 @@ export function Board({ projectId, members }: BoardProps) {
           size="sm"
         >
           <Plus className="h-4 w-4 mr-1" />
-          New Task
+          Новая задача
         </Button>
       </div>
 

@@ -1,12 +1,12 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { register } from "@/actions/auth";
 import { registerSchema } from "@/validations/auth";
 import { toast } from "sonner";
-import { Mail, Lock, User, Loader2 } from "lucide-react";
+import { Mail, Lock, User, Loader2, Eye, EyeOff, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,8 +19,18 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+const PASSWORD_RULES = [
+  { id: "length", label: "Минимум 8 символов", test: (p: string) => p.length >= 8 },
+  { id: "uppercase", label: "Заглавная буква (A-Z)", test: (p: string) => /[A-Z]/.test(p) },
+  { id: "digit", label: "Цифра (0-9)", test: (p: string) => /[0-9]/.test(p) },
+  { id: "special", label: "Спецсимвол (!@#$...)", test: (p: string) => /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(p) },
+];
+
 export function RegisterForm() {
   const router = useRouter();
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [error, action, isPending] = useActionState(
     async (prev: string | null, formData: FormData) => {
@@ -49,6 +59,18 @@ export function RegisterForm() {
   useEffect(() => {
     if (error) toast.error(error);
   }, [error]);
+
+  const passedRules = PASSWORD_RULES.filter((r) => r.test(password));
+  const strengthPercent =
+    password.length > 0 ? (passedRules.length / PASSWORD_RULES.length) * 100 : 0;
+  const strengthColor =
+    strengthPercent <= 25
+      ? "bg-red-500"
+      : strengthPercent <= 50
+        ? "bg-amber-500"
+        : strengthPercent <= 75
+          ? "bg-yellow-400"
+          : "bg-emerald-500";
 
   return (
     <Card className="w-full max-w-md">
@@ -108,13 +130,67 @@ export function RegisterForm() {
               <Input
                 id="password"
                 name="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
                 required
                 disabled={isPending}
-                className="pl-10"
+                className="pl-10 pr-10"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
             </div>
+
+            {/* Password strength indicator */}
+            {password.length > 0 && (
+              <div className="space-y-2.5 pt-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                {/* Strength bar */}
+                <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 ease-out ${strengthColor}`}
+                    style={{ width: `${strengthPercent}%` }}
+                  />
+                </div>
+
+                {/* Requirements checklist */}
+                <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                  {PASSWORD_RULES.map((rule) => {
+                    const passed = rule.test(password);
+                    return (
+                      <div
+                        key={rule.id}
+                        className="flex items-center gap-1.5 text-xs transition-colors duration-200"
+                      >
+                        {passed ? (
+                          <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                        ) : (
+                          <X className="h-3.5 w-3.5 text-muted-foreground/40 shrink-0" />
+                        )}
+                        <span
+                          className={
+                            passed
+                              ? "text-emerald-600 font-medium"
+                              : "text-muted-foreground"
+                          }
+                        >
+                          {rule.label}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -124,12 +200,23 @@ export function RegisterForm() {
               <Input
                 id="confirmPassword"
                 name="confirmPassword"
-                type="password"
+                type={showConfirmPassword ? "text" : "password"}
                 placeholder="••••••••"
                 required
                 disabled={isPending}
-                className="pl-10"
+                className="pl-10 pr-10"
               />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {showConfirmPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
             </div>
           </div>
         </CardContent>
