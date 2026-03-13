@@ -1,36 +1,141 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚀 TaskFlow — SaaS Task Management Platform
 
-## Getting Started
+A full-featured project management platform with Kanban boards, team collaboration, analytics, and real-time notifications.
 
-First, run the development server:
+## ✨ Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **📋 Kanban Board** — Drag-and-drop task management with 4 columns (To Do → In Progress → Review → Done)
+- **👥 Team Collaboration** — Create projects, invite members, assign roles (Owner/Admin/Member)
+- **🔐 Authentication** — Secure email/password auth with JWT sessions
+- **📊 Analytics** — Task distribution by status/priority, overdue tracking, completion rates
+- **🔔 Notifications** — Deadline warnings, task assignments, status changes
+- **📱 Responsive** — Works on desktop, tablet, and mobile
+
+## 🛠 Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| **Framework** | Next.js 15 (App Router, Server Components) |
+| **Language** | TypeScript (strict mode) |
+| **ORM** | Prisma 7 |
+| **Database** | SQLite (dev) / PostgreSQL (production) |
+| **Auth** | Auth.js v5 (NextAuth) with JWT |
+| **UI** | shadcn/ui + Tailwind CSS 4 |
+| **Drag & Drop** | HTML5 DnD API |
+| **State** | Zustand |
+| **Validation** | Zod |
+| **Charts** | Recharts |
+| **Icons** | Lucide React |
+
+## 📁 Project Structure
+
+```
+src/
+├── app/
+│   ├── (auth)/          # Login & Register pages
+│   ├── (dashboard)/     # Protected routes
+│   │   ├── dashboard/   # Main dashboard
+│   │   ├── projects/    # Projects CRUD + Kanban + Analytics
+│   │   └── notifications/
+│   └── api/auth/        # Auth.js API routes
+├── actions/             # Server Actions (auth, projects, tasks, notifications)
+├── components/
+│   ├── ui/              # shadcn/ui components
+│   ├── auth/            # Login/Register forms
+│   ├── dashboard/       # Sidebar, Header
+│   └── kanban/          # Board, Column, TaskCard, TaskDialog
+├── lib/                 # Prisma client, utils, constants
+├── store/               # Zustand stores
+├── hooks/               # Custom React hooks
+├── validations/         # Zod schemas
+└── types/               # TypeScript types
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚀 Quick Start
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Prerequisites
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Node.js 18+
+- npm or pnpm
 
-## Learn More
+### Installation
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/taskflow.git
+cd taskflow
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Install dependencies
+npm install
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Generate Prisma client
+npx prisma generate
 
-## Deploy on Vercel
+# Run database migrations
+npx prisma migrate dev --name init
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# Seed the database (optional)
+npx tsx prisma/seed.ts
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+# Start development server
+npm run dev
+```
+
+### Environment Variables
+
+Create a `.env` file in the project root:
+
+```env
+# Database (SQLite for local dev)
+DATABASE_URL="file:./dev.db"
+
+# Auth.js Secret (generate with: openssl rand -base64 32)
+AUTH_SECRET="your-secret-key-here"
+
+# App URL
+NEXTAUTH_URL="http://localhost:3000"
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+```
+
+### Demo Accounts (after seeding)
+
+| Email | Password | Role |
+|-------|----------|------|
+| admin@taskflow.com | password123 | Project Owner |
+| dev@taskflow.com | password123 | Developer |
+| designer@taskflow.com | password123 | Designer |
+
+## 📊 Database Schema
+
+- **User** — Authentication & profile
+- **Project** — Teams with color coding
+- **ProjectMember** — Role-based membership (Owner/Admin/Member)
+- **Task** — Title, description, status, priority, assignee, deadline
+- **Notification** — Assignment, deadline, status change alerts
+
+## 🏗 Architecture Decisions
+
+- **Server Components by default** — Client Components only for interactivity
+- **Server Actions** — All mutations through Next.js Server Actions
+- **JWT Sessions** — Optimized for serverless deployment
+- **Optimistic Updates** — Zustand store for instant Kanban feedback
+- **Zod Validation** — Shared schemas between client and server
+
+## 📦 Deployment
+
+### Vercel (Recommended)
+
+1. Push to GitHub
+2. Import project on [vercel.com](https://vercel.com)
+3. Set environment variables
+4. Deploy
+
+For production, switch to PostgreSQL (e.g., Neon):
+
+```env
+DATABASE_URL="postgresql://user:pass@host/dbname?sslmode=require"
+```
+
+## 📄 License
+
+MIT
