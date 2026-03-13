@@ -1,151 +1,202 @@
-# 🚀 TaskFlow — SaaS Task Management Platform
+# 🚀 TaskFlow — SaaS-платформа для управления задачами
 
-**Live Demo:** [https://taskflow.egor-dev.ru](https://taskflow.egor-dev.ru)
+**Живая демо-версия:** [https://taskflow.egor-dev.ru](https://taskflow.egor-dev.ru)
 
-A full-featured SaaS project management platform with Kanban boards, team collaboration, role-based access control, analytics, and real-time notifications.
+Полнофункциональная SaaS-платформа для управления задачами команды с Kanban-доской, ролевой системой, аналитикой и уведомлениями в реальном времени.
 
-## ✨ Features
+---
 
-- **📋 Kanban Board** — Drag-and-drop task management with 4 columns (To Do → In Progress → Review → Done)
-- **👥 Team Collaboration** — Create projects, invite members by email, assign roles (Owner/Admin/Member)
-- **🔐 Authentication** — Secure email/password auth with Auth.js v5 (JWT sessions)
-- **📊 Analytics** — Task distribution by status/priority, overdue tracking, completion rates with Recharts
-- **🔔 Notifications** — Deadline warnings (24h auto-check), task assignments, status changes
-- **⚙️ Project Settings** — Rename, description, color picker, member management, delete (Owner only)
-- **🎨 Modern UI** — Inter font, priority/status color coding, responsive design
-- **🔒 Role-Based Access** — Owner > Admin > Member with granular permissions
+## 📋 Реализованные функциональные требования
 
-## 🛠 Tech Stack
+| # | Требование | Статус | Описание реализации |
+|---|-----------|--------|-------------------|
+| 1 | Регистрация и авторизация (email + пароль) | ✅ | Auth.js v5 с Credentials-провайдером, JWT-сессии, валидация через Zod, индикатор надёжности пароля |
+| 2 | Создание проектов с участниками | ✅ | CRUD проектов, приглашение участников по email, цветовая маркировка |
+| 3 | Задачи: название, описание, исполнитель, дедлайн, приоритет | ✅ | Полная форма создания и редактирования задач со всеми полями |
+| 4 | Статусы: To Do → In Progress → Review → Done | ✅ | 4 колонки на Kanban-доске с соответствующими статусами |
+| 5 | Kanban-доска с drag-and-drop | ✅ | HTML5 Drag and Drop API, оптимистичные обновления через Zustand |
+| 6 | Уведомления о дедлайнах | ✅ | Автоматическая проверка дедлайнов (за 24ч и просроченные), уведомления о назначении и смене статуса |
+| 7 | Аналитика: задачи по статусам, просроченные | ✅ | Интерактивные графики (Recharts): распределение по статусам, приоритетам, просроченные задачи |
 
-| Layer | Technology |
-|-------|-----------|
-| **Framework** | Next.js 16 (App Router, Server Components) |
-| **Language** | TypeScript (strict mode) |
-| **ORM** | Prisma 7 with PostgreSQL driver adapter |
-| **Database** | PostgreSQL 16 |
-| **Auth** | Auth.js v5 (NextAuth) with Credentials + JWT |
-| **UI** | shadcn/ui (Base UI variant) + Tailwind CSS 4 |
-| **Drag & Drop** | HTML5 DnD API |
-| **State** | Zustand |
-| **Validation** | Zod |
-| **Charts** | Recharts |
-| **Icons** | Lucide React |
-| **Hosting** | Hetzner VPS + Nginx + PM2 + Cloudflare |
+## 📋 Реализованные технические требования
 
-## 📁 Project Structure
+| # | Требование | Статус | Описание |
+|---|-----------|--------|----------|
+| 1 | Стек: Next.js + Prisma + PostgreSQL | ✅ | Next.js 16, Prisma 7, PostgreSQL 16 |
+| 2 | Деплой на публичный URL | ✅ | [https://taskflow.egor-dev.ru](https://taskflow.egor-dev.ru) — Hetzner VPS + Nginx + PM2 + Cloudflare SSL |
+| 3 | GitHub с README | ✅ | [https://github.com/Chumbayoumba/taskflow](https://github.com/Chumbayoumba/taskflow) |
+
+---
+
+## ✨ Дополнительный функционал (сверх ТЗ)
+
+- **🔒 Ролевая система** — Owner / Admin / Member с гранулярными правами доступа
+- **⚙️ Настройки проекта** — переименование, описание, цветовая маркировка, удаление (только Owner)
+- **👥 Управление участниками** — приглашение по email, смена ролей, удаление из проекта
+- **🔍 Глобальный поиск** — поиск задач и проектов через диалог в хедере
+- **🎨 Современный дизайн** — шрифт Inter, цветовая индикация приоритетов и статусов
+- **📱 Адаптивный интерфейс** — корректная работа на десктопе, планшете и мобильных
+- **🔔 Центр уведомлений** — отдельная страница со всеми уведомлениями и пометкой «прочитано»
+- **📊 Dashboard** — сводная панель со статистикой по всем проектам
+
+---
+
+## 🛠 Стек технологий
+
+| Слой | Технология |
+|------|-----------|
+| **Фреймворк** | Next.js 16 (App Router, Server Components, Server Actions) |
+| **Язык** | TypeScript (strict mode) |
+| **ORM** | Prisma 7 с PostgreSQL driver adapter |
+| **База данных** | PostgreSQL 16 |
+| **Аутентификация** | Auth.js v5 (NextAuth) — Credentials + JWT |
+| **UI-библиотека** | shadcn/ui (Base UI) + Tailwind CSS 4 |
+| **Drag and Drop** | HTML5 DnD API |
+| **Менеджер состояния** | Zustand (оптимистичные обновления) |
+| **Валидация** | Zod (клиент + сервер) |
+| **Графики** | Recharts |
+| **Иконки** | Lucide React |
+| **Хостинг** | Hetzner VPS + Nginx + PM2 + Cloudflare |
+
+---
+
+## 📁 Структура проекта
 
 ```
 src/
 ├── app/
-│   ├── (auth)/              # Login & Register pages
-│   ├── (dashboard)/         # Protected routes
-│   │   ├── dashboard/       # Main dashboard
-│   │   ├── projects/        # Projects CRUD
-│   │   │   └── [projectId]/ # Project sub-pages
-│   │   │       ├── board/   # Kanban board
-│   │   │       ├── members/ # Member management
-│   │   │       ├── analytics/ # Charts & stats
-│   │   │       └── settings/  # Project settings
-│   │   ├── notifications/   # Notification center
-│   │   └── settings/        # User settings
-│   └── api/auth/            # Auth.js API routes
-├── actions/                 # Server Actions (auth, projects, tasks, notifications)
+│   ├── (auth)/                # Страницы входа и регистрации
+│   ├── (dashboard)/           # Защищённые маршруты
+│   │   ├── dashboard/         # Главная панель
+│   │   ├── projects/          # CRUD проектов
+│   │   │   └── [projectId]/   # Страницы проекта
+│   │   │       ├── board/     # Kanban-доска
+│   │   │       ├── members/   # Управление участниками
+│   │   │       ├── analytics/ # Аналитика и графики
+│   │   │       └── settings/  # Настройки проекта
+│   │   ├── notifications/     # Центр уведомлений
+│   │   └── settings/          # Настройки пользователя
+│   └── api/auth/              # API-маршруты Auth.js
+├── actions/                   # Server Actions (auth, проекты, задачи, уведомления)
 ├── components/
-│   ├── ui/                  # shadcn/ui components
-│   ├── auth/                # Login/Register forms
-│   ├── dashboard/           # Sidebar, Header
-│   ├── kanban/              # Board, Column, TaskCard, TaskDialog
-│   ├── members/             # Member management
-│   └── project/             # Project tabs, settings
-├── lib/                     # Prisma client, utils, constants
-├── store/                   # Zustand stores
-├── hooks/                   # Custom React hooks
-├── validations/             # Zod schemas
-└── types/                   # TypeScript types
+│   ├── ui/                    # shadcn/ui компоненты
+│   ├── auth/                  # Формы входа и регистрации
+│   ├── dashboard/             # Sidebar, Header
+│   ├── kanban/                # Board, Column, TaskCard, TaskDialog
+│   ├── members/               # Управление участниками
+│   └── project/               # Вкладки проекта, настройки
+├── lib/                       # Prisma-клиент, утилиты, константы
+├── store/                     # Zustand stores
+├── hooks/                     # Кастомные React-хуки
+├── validations/               # Zod-схемы валидации
+└── types/                     # TypeScript-типы
 ```
 
-## 🚀 Quick Start
+---
 
-### Prerequisites
+## 🏗 Архитектурные решения
+
+- **Server Components по умолчанию** — Client Components только для интерактивности (формы, drag-and-drop, графики)
+- **Server Actions** — все мутации данных через Next.js Server Actions с Zod-валидацией
+- **JWT-сессии** — оптимизированы для Edge Middleware, не требуют хранения сессий в БД
+- **Оптимистичные обновления** — Zustand store для мгновенного отклика при перетаскивании задач на Kanban-доске
+- **Автоматическая проверка дедлайнов** — интегрирована в систему уведомлений, проверяется при каждом запросе
+- **Ролевая модель доступа** — Owner контролирует участников и настройки проекта, Admin может приглашать участников, Member работает с задачами
+
+---
+
+## 🚀 Быстрый старт
+
+### Требования
 
 - Node.js 20+
 - PostgreSQL 16+
 
-### Installation
+### Установка
 
 ```bash
-# Clone the repository
-git clone https://github.com/egordev-playground/taskflow.git
+# Клонировать репозиторий
+git clone https://github.com/Chumbayoumba/taskflow.git
 cd taskflow
 
-# Install dependencies
+# Установить зависимости
 npm install
 
-# Generate Prisma client
+# Сгенерировать Prisma-клиент
 npx prisma generate
 
-# Run database migrations
+# Применить схему к базе данных
 npx prisma db push
 
-# Seed the database (optional — creates demo users & projects)
+# Заполнить демо-данными (опционально — создаёт тестовых пользователей и проекты)
 npx tsx prisma/seed.ts
 
-# Start development server
+# Запустить сервер разработки
 npm run dev
 ```
 
-### Environment Variables
+### Переменные окружения
 
-Create a `.env` file in the project root:
+Создайте файл `.env` в корне проекта:
 
 ```env
-# Database
+# База данных
 DATABASE_URL="postgresql://user:pass@localhost:5432/taskflow"
 
-# Auth.js Secret (generate with: openssl rand -base64 32)
-AUTH_SECRET="your-secret-key-here"
+# Секрет Auth.js (сгенерировать: openssl rand -base64 32)
+AUTH_SECRET="ваш-секретный-ключ"
 
-# App URL
+# URL приложения
 NEXTAUTH_URL="http://localhost:3000"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 AUTH_TRUST_HOST=true
 ```
 
-### Demo Accounts (after seeding)
+### Демо-аккаунты (после seed)
 
-| Email | Password | Role |
-|-------|----------|------|
-| alice@example.com | Password123 | Project Owner |
-| bob@example.com | Password123 | Admin |
-| charlie@example.com | Password123 | Member |
+| Email | Пароль | Роль |
+|-------|--------|------|
+| alice@example.com | Password123 | Owner (владелец) |
+| bob@example.com | Password123 | Admin (администратор) |
+| charlie@example.com | Password123 | Member (участник) |
 
-## 📊 Database Schema
+---
 
-- **User** — Authentication & profile
-- **Project** — Teams with color coding and descriptions
-- **ProjectMember** — Role-based membership (Owner/Admin/Member)
-- **Task** — Title, description, status, priority, assignee, deadline
-- **Notification** — Assignment, deadline warning/overdue, status change, invite alerts
+## 📊 Схема базы данных
 
-## 🏗 Architecture Decisions
+| Таблица | Описание |
+|---------|----------|
+| **User** | Пользователи — имя, email, хеш пароля |
+| **Project** | Проекты — название, описание, цветовая маркировка |
+| **ProjectMember** | Участники проекта — роль (Owner / Admin / Member) |
+| **Task** | Задачи — название, описание, статус, приоритет, исполнитель, дедлайн |
+| **Notification** | Уведомления — назначение задачи, предупреждение о дедлайне, смена статуса, приглашение |
 
-- **Server Components by default** — Client Components only for interactivity
-- **Server Actions** — All mutations through Next.js Server Actions with Zod validation
-- **JWT Sessions** — Optimized for Edge middleware
-- **Optimistic Updates** — Zustand store for instant Kanban drag-and-drop feedback
-- **Auto Deadline Check** — Integrated into notification polling (checks every fetch)
-- **Role-Based Permissions** — Owner controls membership and project settings
+---
 
-## 📦 Deployment
+## 📦 Деплой
 
-Deployed on Hetzner VPS with:
-- **Nginx** reverse proxy with SSL (Cloudflare)
-- **PM2** process manager
-- **PostgreSQL 16** database
-- **Node.js 20** runtime
+Развёрнуто на **Hetzner VPS**:
+- **Nginx** — reverse proxy с SSL через Cloudflare
+- **PM2** — менеджер процессов Node.js
+- **PostgreSQL 16** — продакшен база данных
+- **Node.js 20** — серверная среда выполнения
 
-Live at: [https://taskflow.egor-dev.ru](https://taskflow.egor-dev.ru)
+🔗 **Продакшен:** [https://taskflow.egor-dev.ru](https://taskflow.egor-dev.ru)
 
-## 📄 License
+---
+
+## 🤝 Сложности и решения
+
+| Сложность | Решение |
+|-----------|---------|
+| Base UI Select показывал ID вместо имён участников | Переписан на controlled-компоненты с ручным отображением текста |
+| Prisma 7 требует driver adapter вместо прямого подключения | Реализован через `@prisma/adapter-pg` с кастом типов |
+| Auth.js v5 за reverse proxy не доверял хосту | Добавлен `AUTH_TRUST_HOST=true` для корректной работы за Cloudflare |
+| Оптимистичные обновления при drag-and-drop | Zustand store с немедленным обновлением UI и откатом при ошибке сервера |
+
+---
+
+## 📄 Лицензия
 
 MIT
