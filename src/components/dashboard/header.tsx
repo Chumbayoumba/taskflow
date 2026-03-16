@@ -25,7 +25,7 @@ import {
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { useNotifications } from "@/hooks/use-notifications";
 import { SearchDialog } from "@/components/search/search-dialog";
-import { cn } from "@/lib/utils";
+
 
 const pageTitles: Record<string, string> = {
   "/dashboard": "Дашборд",

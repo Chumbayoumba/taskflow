@@ -6,9 +6,16 @@ import { PRIORITY_CONFIG, type TaskPriority } from "@/lib/constants";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { GripVertical, Calendar, AlertCircle, Flame, ArrowUp, Minus, ArrowDown } from "lucide-react";
+import { GripVertical, Calendar, AlertCircle, Flame, ArrowUp, Minus, ArrowDown, MessageSquare, CheckSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { TaskWithRelations } from "@/types";
+import type { Tag, TaskTag, ChecklistItem } from "@/generated/prisma/client";
+
+type TaskCardTask = TaskWithRelations & {
+  taskTags?: (TaskTag & { tag: Tag })[];
+  checklistItems?: Pick<ChecklistItem, "id" | "completed">[];
+  _count?: { comments: number; checklistItems: number };
+};
 
 const PRIORITY_BADGE_STYLES: Record<string, string> = {
   slate:
@@ -65,7 +72,7 @@ function getInitials(name: string): string {
 }
 
 interface TaskCardProps {
-  task: TaskWithRelations;
+  task: TaskCardTask;
   onDragStart: () => void;
   onClick: () => void;
 }
@@ -101,6 +108,29 @@ export function TaskCard({ task, onDragStart, onClick }: TaskCardProps) {
           </p>
         </div>
 
+        {/* Tags */}
+        {task.taskTags && task.taskTags.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {task.taskTags.slice(0, 4).map((tt) => (
+              <span
+                key={tt.tag.id}
+                className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-muted"
+              >
+                <span
+                  className="h-2 w-2 rounded-full shrink-0"
+                  style={{ backgroundColor: tt.tag.color }}
+                />
+                <span className="truncate max-w-[60px]">{tt.tag.name}</span>
+              </span>
+            ))}
+            {task.taskTags.length > 4 && (
+              <span className="text-[10px] text-muted-foreground">
+                +{task.taskTags.length - 4}
+              </span>
+            )}
+          </div>
+        )}
+
         {/* Priority badge */}
         {priorityConfig && (
           <Badge
@@ -113,6 +143,27 @@ export function TaskCard({ task, onDragStart, onClick }: TaskCardProps) {
             {PriorityIcon && <PriorityIcon className="h-2.5 w-2.5" />}
             {priorityConfig.label}
           </Badge>
+        )}
+
+        {/* Checklist & Comments indicators */}
+        {((task.checklistItems && task.checklistItems.length > 0) || (task._count?.comments ?? 0) > 0) && (
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            {task.checklistItems && task.checklistItems.length > 0 && (
+              <div className="flex items-center gap-1">
+                <CheckSquare className="h-3 w-3" />
+                <span>
+                  {task.checklistItems.filter((i) => i.completed).length}
+                  /{task.checklistItems.length}
+                </span>
+              </div>
+            )}
+            {(task._count?.comments ?? 0) > 0 && (
+              <div className="flex items-center gap-1">
+                <MessageSquare className="h-3 w-3" />
+                <span>{task._count?.comments}</span>
+              </div>
+            )}
+          </div>
         )}
 
         {/* Footer: assignee + deadline */}

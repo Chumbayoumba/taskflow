@@ -50,3 +50,77 @@ export const PROJECT_COLORS = [
   "#3b82f6", // blue
   "#6b7280", // gray
 ];
+
+export const ACTIVITY_ACTIONS = [
+  "CREATED",
+  "STATUS_CHANGED",
+  "ASSIGNED",
+  "PRIORITY_CHANGED",
+  "COMMENT_ADDED",
+  "COMMENT_DELETED",
+  "CHECKLIST_ITEM_ADDED",
+  "CHECKLIST_ITEM_TOGGLED",
+  "CHECKLIST_ITEM_DELETED",
+  "TAG_ADDED",
+  "TAG_REMOVED",
+  "DEPENDENCY_ADDED",
+  "DEPENDENCY_REMOVED",
+  "TITLE_CHANGED",
+  "DESCRIPTION_CHANGED",
+  "DEADLINE_CHANGED",
+] as const;
+export type ActivityAction = (typeof ACTIVITY_ACTIONS)[number];
+
+export const ACTIVITY_ACTION_LABELS: Record<ActivityAction, string> = {
+  CREATED: "создал(а) задачу",
+  STATUS_CHANGED: "изменил(а) статус",
+  ASSIGNED: "назначил(а) исполнителя",
+  PRIORITY_CHANGED: "изменил(а) приоритет",
+  COMMENT_ADDED: "добавил(а) комментарий",
+  COMMENT_DELETED: "удалил(а) комментарий",
+  CHECKLIST_ITEM_ADDED: "добавил(а) пункт чеклиста",
+  CHECKLIST_ITEM_TOGGLED: "обновил(а) пункт чеклиста",
+  CHECKLIST_ITEM_DELETED: "удалил(а) пункт чеклиста",
+  TAG_ADDED: "добавил(а) тег",
+  TAG_REMOVED: "удалил(а) тег",
+  DEPENDENCY_ADDED: "добавил(а) зависимость",
+  DEPENDENCY_REMOVED: "удалил(а) зависимость",
+  TITLE_CHANGED: "изменил(а) название",
+  DESCRIPTION_CHANGED: "изменил(а) описание",
+  DEADLINE_CHANGED: "изменил(а) дедлайн",
+};
+
+export const DEFAULT_TAG_COLORS = [
+  "#ef4444", // red
+  "#f97316", // orange
+  "#eab308", // yellow
+  "#22c55e", // green
+  "#06b6d4", // cyan
+  "#3b82f6", // blue
+  "#8b5cf6", // violet
+  "#ec4899", // pink
+  "#6b7280", // gray
+  "#14b8a6", // teal
+];
+
+export const TASK_STATUS_MAP: Record<string, string> = {
+  TODO: "К выполнению",
+  IN_PROGRESS: "В работе",
+  REVIEW: "На проверке",
+  DONE: "Готово",
+};
+
+export const TASK_PRIORITY_MAP: Record<string, string> = {
+  LOW: "Низкий",
+  MEDIUM: "Средний",
+  HIGH: "Высокий",
+  URGENT: "Критичный",
+};
+
+export const FILTER_DEADLINE_OPTIONS = [
+  { value: "all", label: "Все" },
+  { value: "overdue", label: "Просрочено" },
+  { value: "today", label: "Сегодня" },
+  { value: "this_week", label: "Эта неделя" },
+  { value: "no_deadline", label: "Без дедлайна" },
+] as const;

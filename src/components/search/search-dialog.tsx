@@ -41,27 +41,31 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
     return () => clearTimeout(timer);
   }, [query, doSearch]);
 
-  useEffect(() => {
-    if (!open) {
-      setQuery("");
-      setResults({ tasks: [], projects: [] });
-    }
-  }, [open]);
+  const handleOpenChange = useCallback(
+    (value: boolean) => {
+      onOpenChange(value);
+      if (!value) {
+        setQuery("");
+        setResults({ tasks: [], projects: [] });
+      }
+    },
+    [onOpenChange]
+  );
 
   // Ctrl+K shortcut
   useEffect(() => {
     function handler(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
-        onOpenChange(true);
+        handleOpenChange(true);
       }
     }
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [onOpenChange]);
+  }, [handleOpenChange]);
 
   function navigate(path: string) {
-    onOpenChange(false);
+    handleOpenChange(false);
     router.push(path);
   }
 
@@ -69,7 +73,7 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
   const showEmpty = query.trim().length >= 2 && !isPending && !hasResults;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-lg p-0 gap-0 overflow-hidden">
         <DialogTitle className="sr-only">Поиск</DialogTitle>
 

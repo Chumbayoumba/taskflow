@@ -3,9 +3,10 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { createTaskSchema, updateTaskSchema } from "@/validations/task";
-import type { ActionResult, TaskWithRelations } from "@/types";
+import type { ActionResult, TaskWithRelations, TaskWithDetails, TaskCardData } from "@/types";
 import type { TaskStatus } from "@/lib/constants";
 import { revalidatePath } from "next/cache";
+import { logActivity } from "./activity";
 
 async function getCurrentUserId(): Promise<string> {
   const session = await auth();
@@ -71,6 +72,9 @@ export async function createTask(
     });
   }
 
+  // Log activity
+  await logActivity(task.id, userId, "CREATED");
+
   revalidatePath(`/projects/${projectId}/board`);
   revalidatePath("/dashboard");
   return { success: true, data: { id: task.id } };
@@ -84,7 +88,7 @@ export async function updateTask(
 
   const task = await prisma.task.findUnique({
     where: { id: taskId },
-    select: { projectId: true, assigneeId: true, status: true, title: true },
+    select: { projectId: true, assigneeId: true, status: true, title: true, priority: true },
   });
   if (!task) return { success: false, error: "Задача не найдена" };
 
@@ -122,6 +126,21 @@ export async function updateTask(
     data: updateData,
   });
 
+  // Log activity for each changed field
+  if (status && status !== task.status) {
+    await logActivity(taskId, userId, "STATUS_CHANGED", task.status, status as string);
+  }
+  if (priority && priority !== task.priority) {
+    await logActivity(taskId, userId, "PRIORITY_CHANGED", task.priority ?? undefined, priority as string);
+  }
+  if (title && title !== task.title) {
+    await logActivity(taskId, userId, "TITLE_CHANGED", task.title, title as string);
+  }
+  const newAssigneeRaw = updateData.assigneeId as string | null | undefined;
+  if (newAssigneeRaw !== undefined && newAssigneeRaw !== task.assigneeId) {
+    await logActivity(taskId, userId, "ASSIGNED", task.assigneeId ?? undefined, newAssigneeRaw ?? undefined);
+  }
+
   // Notifications
   if (status && status !== task.status) {
     const notifyUserIds = new Set<string>();
@@ -140,7 +159,7 @@ export async function updateTask(
     }
   }
 
-  const newAssigneeId = updateData.assigneeId as string | null | undefined;
+  const newAssigneeId = newAssigneeRaw;
   if (
     newAssigneeId &&
     newAssigneeId !== task.assigneeId &&
@@ -185,6 +204,9 @@ export async function moveTask(
 
   // Reorder remaining tasks in old column
   if (task.status !== newStatus) {
+    // Log activity
+    await logActivity(taskId, userId, "STATUS_CHANGED", task.status, newStatus);
+
     // Notify about status change
     const notifyUserIds = new Set<string>();
     if (task.assigneeId && task.assigneeId !== userId)
@@ -244,4 +266,79 @@ export async function getProjectTasks(
     },
     orderBy: [{ order: "asc" }, { createdAt: "asc" }],
   });
+}
+
+export async function getProjectTasksForBoard(
+  projectId: string
+): Promise<TaskCardData[]> {
+  const userId = await getCurrentUserId();
+
+  if (!(await checkProjectAccess(projectId, userId))) {
+    return [];
+  }
+
+  return prisma.task.findMany({
+    where: { projectId },
+    include: {
+      assignee: { select: { id: true, name: true, email: true, avatarUrl: true } },
+      creator: { select: { id: true, name: true, email: true } },
+      taskTags: { include: { tag: true } },
+      checklistItems: { select: { id: true, completed: true } },
+      _count: { select: { comments: true, checklistItems: true } },
+    },
+    orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+  }) as unknown as TaskCardData[];
+}
+
+export async function getTaskById(
+  taskId: string
+): Promise<ActionResult<TaskWithDetails>> {
+  const userId = await getCurrentUserId();
+
+  const task = await prisma.task.findUnique({
+    where: { id: taskId },
+    include: {
+      assignee: { select: { id: true, name: true, email: true, avatarUrl: true } },
+      creator: { select: { id: true, name: true, email: true, avatarUrl: true } },
+      comments: {
+        include: {
+          author: { select: { id: true, name: true, email: true, avatarUrl: true } },
+        },
+        orderBy: { createdAt: "desc" },
+      },
+      checklistItems: {
+        orderBy: { order: "asc" },
+      },
+      dependencies: {
+        include: {
+          dependsOn: { select: { id: true, title: true, status: true, priority: true } },
+        },
+      },
+      dependedOnBy: {
+        include: {
+          task: { select: { id: true, title: true, status: true, priority: true } },
+        },
+      },
+      taskTags: {
+        include: { tag: true },
+      },
+      activities: {
+        include: {
+          user: { select: { id: true, name: true, email: true, avatarUrl: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 50,
+      },
+    },
+  });
+
+  if (!task) {
+    return { success: false, error: "Задача не найдена" };
+  }
+
+  if (!(await checkProjectAccess(task.projectId, userId))) {
+    return { success: false, error: "Нет доступа" };
+  }
+
+  return { success: true, data: task as unknown as TaskWithDetails };
 }

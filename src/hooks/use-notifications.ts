@@ -16,9 +16,17 @@ export function useNotifications() {
   }, []);
 
   useEffect(() => {
-    refresh();
-    const interval = setInterval(refresh, 30000); // every 30 sec
-    return () => clearInterval(interval);
+    let cancelled = false;
+    getUnreadCount()
+      .then((count) => {
+        if (!cancelled) setUnreadCount(count);
+      })
+      .catch(() => {});
+    const interval = setInterval(refresh, 30000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
   }, [refresh]);
 
   return { unreadCount, refresh };

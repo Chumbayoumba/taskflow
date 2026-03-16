@@ -46,7 +46,7 @@ export async function searchGlobal(
 
   const projects = await prisma.project.findMany({
     where: {
-      name: { contains: q, mode: "insensitive" },
+      name: { contains: q },
       members: { some: { userId } },
     },
     select: { id: true, name: true, color: true },
@@ -55,7 +55,7 @@ export async function searchGlobal(
 
   const tasks = await prisma.task.findMany({
     where: {
-      title: { contains: q, mode: "insensitive" },
+      title: { contains: q },
       project: { members: { some: { userId } } },
     },
     select: { id: true, title: true, projectId: true, status: true },

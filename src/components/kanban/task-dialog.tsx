@@ -54,7 +54,7 @@ export function TaskDialog({
   task,
 }: TaskDialogProps) {
   const isEdit = !!task;
-  const { addTask, updateTask: storeUpdate, removeTask } = useKanbanStore();
+  const { updateTask: storeUpdate, removeTask } = useKanbanStore();
 
   const [isPending, startTransition] = useTransition();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);

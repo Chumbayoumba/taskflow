@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { useKanbanStore } from "@/store/kanban-store";
-import { getProjectTasks, moveTask } from "@/actions/tasks";
+import { getProjectTasksForBoard, moveTask } from "@/actions/tasks";
+import { getProjectTags } from "@/actions/tags";
 import { Column } from "./column";
 import { TaskDialog } from "./task-dialog";
+import { BoardFiltersBar } from "./board-filters";
 import { TASK_STATUSES, type TaskStatus } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Plus, Loader2 } from "lucide-react";
@@ -18,15 +21,15 @@ interface BoardProps {
     email: string;
     avatarUrl: string | null;
   }[];
+  tags?: { id: string; name: string; color: string }[];
 }
 
-export function Board({ projectId, members }: BoardProps) {
-  const { columns, setTasks, isLoading, moveTask: optimisticMove } =
+export function Board({ projectId, members, tags }: BoardProps) {
+  const router = useRouter();
+  const { columns, setTasks, isLoading, moveTask: optimisticMove, filters, setFilters, getFilteredColumns } =
     useKanbanStore();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingTask, setEditingTask] = useState<TaskWithRelations | null>(
-    null
-  );
+  const [projectTags, setProjectTags] = useState<{ id: string; name: string; color: string }[]>(tags ?? []);
 
   // Drag state
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
@@ -35,8 +38,13 @@ export function Board({ projectId, members }: BoardProps) {
   );
 
   useEffect(() => {
-    getProjectTasks(projectId).then(setTasks);
-  }, [projectId, setTasks]);
+    getProjectTasksForBoard(projectId).then((tasks) =>
+      setTasks(tasks as unknown as TaskWithRelations[])
+    );
+    if (!tags) {
+      getProjectTags(projectId).then(setProjectTags);
+    }
+  }, [projectId, setTasks, tags]);
 
   const handleDragStart = useCallback(
     (taskId: string, fromStatus: string) => {
@@ -85,13 +93,11 @@ export function Board({ projectId, members }: BoardProps) {
   );
 
   const handleTaskClick = useCallback((task: TaskWithRelations) => {
-    setEditingTask(task);
-    setDialogOpen(true);
-  }, []);
+    router.push(`/projects/${projectId}/tasks/${task.id}`);
+  }, [router, projectId]);
 
   const handleDialogClose = useCallback((open: boolean) => {
     setDialogOpen(open);
-    if (!open) setEditingTask(null);
   }, []);
 
   if (isLoading) {
@@ -102,15 +108,14 @@ export function Board({ projectId, members }: BoardProps) {
     );
   }
 
+  const filteredColumns = getFilteredColumns();
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-semibold">Канбан-доска</h2>
         <Button
-          onClick={() => {
-            setEditingTask(null);
-            setDialogOpen(true);
-          }}
+          onClick={() => setDialogOpen(true)}
           size="sm"
         >
           <Plus className="h-4 w-4 mr-1" />
@@ -118,21 +123,27 @@ export function Board({ projectId, members }: BoardProps) {
         </Button>
       </div>
 
+      <div className="mb-4">
+        <BoardFiltersBar
+          filters={filters}
+          onFiltersChange={setFilters}
+          members={members}
+          tags={projectTags}
+        />
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {TASK_STATUSES.map((status) => (
           <Column
             key={status}
             status={status}
-            tasks={columns[status] || []}
+            tasks={filteredColumns[status] || []}
             isDragOver={false}
             onDragStart={handleDragStart}
             onDragOver={handleDragOver}
             onDrop={() => handleDrop(status)}
             onTaskClick={handleTaskClick}
-            onNewTask={() => {
-              setEditingTask(null);
-              setDialogOpen(true);
-            }}
+            onNewTask={() => setDialogOpen(true)}
           />
         ))}
       </div>
@@ -142,7 +153,6 @@ export function Board({ projectId, members }: BoardProps) {
         onOpenChange={handleDialogClose}
         projectId={projectId}
         members={members}
-        task={editingTask ?? undefined}
       />
     </div>
   );

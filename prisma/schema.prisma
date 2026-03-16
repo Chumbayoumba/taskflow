@@ -4,7 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
 }
 
 // ==================== USER ====================
@@ -22,6 +22,8 @@ model User {
   assignedTasks Task[]          @relation("TaskAssignee")
   createdTasks  Task[]          @relation("TaskCreator")
   notifications Notification[]
+  comments      Comment[]
+  activities    TaskActivity[]
 }
 
 // ==================== PROJECT ====================
@@ -37,6 +39,7 @@ model Project {
   owner   User            @relation("ProjectOwner", fields: [ownerId], references: [id])
   members ProjectMember[]
   tasks   Task[]
+  tags    Tag[]
 
   @@index([ownerId])
 }
@@ -71,10 +74,16 @@ model Task {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  project       Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  assignee      User?          @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
-  creator       User           @relation("TaskCreator", fields: [creatorId], references: [id])
-  notifications Notification[]
+  project        Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignee       User?            @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  creator        User             @relation("TaskCreator", fields: [creatorId], references: [id])
+  notifications  Notification[]
+  comments       Comment[]
+  checklistItems ChecklistItem[]
+  dependencies   TaskDependency[] @relation("TaskDependencies")
+  dependedOnBy   TaskDependency[] @relation("TaskDependedOnBy")
+  taskTags       TaskTag[]
+  activities     TaskActivity[]
 
   @@index([projectId, status])
   @@index([assigneeId])
@@ -96,4 +105,91 @@ model Notification {
 
   @@index([userId, read])
   @@index([createdAt])
+}
+
+// ==================== COMMENT ====================
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  taskId    String
+  authorId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([taskId, createdAt])
+}
+
+// ==================== CHECKLIST ITEM ====================
+model ChecklistItem {
+  id        String   @id @default(cuid())
+  title     String
+  completed Boolean  @default(false)
+  order     Int      @default(0)
+  taskId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId, order])
+}
+
+// ==================== TASK DEPENDENCY ====================
+model TaskDependency {
+  id          String   @id @default(cuid())
+  taskId      String
+  dependsOnId String
+  createdAt   DateTime @default(now())
+
+  task      Task @relation("TaskDependencies", fields: [taskId], references: [id], onDelete: Cascade)
+  dependsOn Task @relation("TaskDependedOnBy", fields: [dependsOnId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, dependsOnId])
+  @@index([dependsOnId])
+}
+
+// ==================== TAG ====================
+model Tag {
+  id        String   @id @default(cuid())
+  name      String
+  color     String   @default("#6366f1")
+  projectId String
+  createdAt DateTime @default(now())
+
+  project  Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  taskTags TaskTag[]
+
+  @@unique([name, projectId])
+  @@index([projectId])
+}
+
+// ==================== TASK TAG (many-to-many) ====================
+model TaskTag {
+  taskId String
+  tagId  String
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, tagId])
+  @@index([tagId])
+}
+
+// ==================== TASK ACTIVITY ====================
+model TaskActivity {
+  id        String   @id @default(cuid())
+  action    String   // CREATED, STATUS_CHANGED, ASSIGNED, PRIORITY_CHANGED, COMMENT_ADDED, CHECKLIST_UPDATED, TAG_ADDED, TAG_REMOVED, DEPENDENCY_ADDED, DEPENDENCY_REMOVED
+  oldValue  String?
+  newValue  String?
+  taskId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([taskId, createdAt])
 }

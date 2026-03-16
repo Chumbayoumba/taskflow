@@ -3,7 +3,6 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import {
-  LayoutDashboard,
   FolderKanban,
   CheckCircle2,
   Clock,
@@ -11,7 +10,7 @@ import {
   ListTodo,
   Plus,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PRIORITY_CONFIG, STATUS_CONFIG } from "@/lib/constants";

@@ -1,9 +1,9 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { redirect, notFound } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { redirect } from "next/navigation";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Bell, CheckCircle2, AlertTriangle, UserPlus, ArrowRight } from "lucide-react";
+import { Bell, CheckCircle2, AlertTriangle, UserPlus, MessageSquare, Link } from "lucide-react";
 
 export default async function NotificationsPage() {
   const session = await auth();
@@ -36,6 +36,8 @@ export default async function NotificationsPage() {
     DEADLINE_OVERDUE: AlertTriangle,
     TASK_STATUS_CHANGED: CheckCircle2,
     PROJECT_INVITED: UserPlus,
+    COMMENT_ADDED: MessageSquare,
+    DEPENDENCY_ADDED: Link,
   };
 
   const typeColors: Record<string, string> = {
@@ -44,6 +46,8 @@ export default async function NotificationsPage() {
     DEADLINE_OVERDUE: "text-rose-600 bg-rose-50",
     TASK_STATUS_CHANGED: "text-emerald-600 bg-emerald-50",
     PROJECT_INVITED: "text-indigo-600 bg-indigo-50",
+    COMMENT_ADDED: "text-sky-600 bg-sky-50",
+    DEPENDENCY_ADDED: "text-violet-600 bg-violet-50",
   };
 
   return (
