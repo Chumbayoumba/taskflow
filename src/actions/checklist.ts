@@ -63,7 +63,10 @@ export async function toggleChecklistItem(
 
   const updated = await prisma.checklistItem.update({
     where: { id: itemId },
-    data: { completed: !item.completed },
+    data: {
+      completed: !item.completed,
+      completedAt: item.completed ? null : new Date(),
+    },
   });
 
   await logActivity(

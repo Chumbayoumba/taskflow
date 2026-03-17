@@ -151,6 +151,18 @@ export function TaskChecklist({ taskId, items }: TaskChecklistProps) {
                   >
                     {item.title}
                   </span>
+                  {item.completed && item.completedAt && (
+                    <span className="text-xs text-green-600 bg-green-50 rounded px-2 py-0.5 whitespace-nowrap flex-shrink-0">
+                      Завершено{" "}
+                      {new Date(item.completedAt).toLocaleString("ru-RU", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                      })}
+                    </span>
+                  )}
                   <div className="opacity-0 group-hover:opacity-100 flex items-center gap-0.5">
                     <Button
                       size="icon"
