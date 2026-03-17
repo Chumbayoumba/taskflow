@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { writeFile, mkdir } from "fs/promises";
+import { writeFile, mkdir, readdir, unlink } from "fs/promises";
 import path from "path";
 
 export async function POST(request: NextRequest) {
@@ -34,18 +34,31 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const ext = file.name.split(".").pop() || "jpg";
+  const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
   const fileName = `${session.user.id}.${ext}`;
-  const uploadDir = path.join(process.cwd(), "public", "uploads", "avatars");
+  const uploadDir = path.join(process.cwd(), "uploads", "avatars");
 
   // Ensure directory exists
   await mkdir(uploadDir, { recursive: true });
+
+  // Remove old avatar files for this user (different extensions)
+  try {
+    const existing = await readdir(uploadDir);
+    for (const f of existing) {
+      if (f.startsWith(session.user.id + ".")) {
+        await unlink(path.join(uploadDir, f));
+      }
+    }
+  } catch {
+    // Directory might not exist yet, ignore
+  }
 
   const filePath = path.join(uploadDir, fileName);
   const bytes = new Uint8Array(await file.arrayBuffer());
   await writeFile(filePath, bytes);
 
-  const avatarUrl = `/uploads/avatars/${fileName}?t=${Date.now()}`;
+  // Serve via API route instead of static file
+  const avatarUrl = `/api/avatar/${session.user.id}?t=${Date.now()}`;
 
   await prisma.user.update({
     where: { id: session.user.id },

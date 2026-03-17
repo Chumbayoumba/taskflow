@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
@@ -25,6 +25,7 @@ import {
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { useNotifications } from "@/hooks/use-notifications";
 import { SearchDialog } from "@/components/search/search-dialog";
+import { resolveBreadcrumbs, type BreadcrumbSegment } from "@/actions/breadcrumbs";
 
 
 const pageTitles: Record<string, string> = {
@@ -46,25 +47,31 @@ function getPageTitle(pathname: string): string {
 }
 
 function Breadcrumbs({ pathname }: { pathname: string }) {
-  const segments = pathname.split("/").filter(Boolean);
+  const [segments, setSegments] = useState<BreadcrumbSegment[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    resolveBreadcrumbs(pathname).then((result) => {
+      if (!cancelled) setSegments(result);
+    });
+    return () => { cancelled = true; };
+  }, [pathname]);
+
+  if (segments.length === 0) return null;
 
   return (
     <nav className="flex items-center gap-1 text-sm text-muted-foreground">
-      {segments.map((segment, index) => {
-        const href = "/" + segments.slice(0, index + 1).join("/");
+      {segments.map((seg, index) => {
         const isLast = index === segments.length - 1;
-        const label =
-          pageTitles["/" + segments.slice(0, index + 1).join("/")] ||
-          segment.charAt(0).toUpperCase() + segment.slice(1);
 
         return (
-          <span key={href} className="flex items-center gap-1">
+          <span key={seg.href} className="flex items-center gap-1">
             {index > 0 && <span className="text-muted-foreground/50">/</span>}
             {isLast ? (
-              <span className="font-medium text-foreground">{label}</span>
+              <span className="font-medium text-foreground">{seg.label}</span>
             ) : (
-              <Link href={href} className="hover:text-foreground transition-colors">
-                {label}
+              <Link href={seg.href} className="hover:text-foreground transition-colors">
+                {seg.label}
               </Link>
             )}
           </span>
