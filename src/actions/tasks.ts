@@ -191,8 +191,6 @@ export async function updateTask(
         notifyUserIds.add(member.userId);
       }
     }
-    notifyUserIds.delete(userId);
-
     for (const uid of notifyUserIds) {
       await prisma.notification.create({
         data: {
@@ -266,12 +264,11 @@ export async function moveTask(
 
     // Notify about status change (assignee, creator, owner, admins)
     const notifyUserIds = new Set<string>();
-    if (task.assigneeId && task.assigneeId !== userId)
-      notifyUserIds.add(task.assigneeId);
-    if (task.creatorId !== userId) notifyUserIds.add(task.creatorId);
-    if (task.project.ownerId !== userId) notifyUserIds.add(task.project.ownerId);
+    if (task.assigneeId) notifyUserIds.add(task.assigneeId);
+    notifyUserIds.add(task.creatorId);
+    notifyUserIds.add(task.project.ownerId);
     for (const member of task.project.members) {
-      if (member.userId !== userId) notifyUserIds.add(member.userId);
+      notifyUserIds.add(member.userId);
     }
 
     for (const uid of notifyUserIds) {

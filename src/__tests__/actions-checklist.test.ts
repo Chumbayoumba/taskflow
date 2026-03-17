@@ -108,7 +108,10 @@ describe("toggleChecklistItem", () => {
     expect(result.success).toBe(true);
     expect(mockPrisma.checklistItem.update).toHaveBeenCalledWith({
       where: { id: "ci-1" },
-      data: { completed: true },
+      data: expect.objectContaining({
+        completed: true,
+        completedAt: expect.any(Date),
+      }),
     });
   });
 
@@ -125,7 +128,10 @@ describe("toggleChecklistItem", () => {
     expect(result.success).toBe(true);
     expect(mockPrisma.checklistItem.update).toHaveBeenCalledWith({
       where: { id: "ci-1" },
-      data: { completed: false },
+      data: {
+        completed: false,
+        completedAt: null,
+      },
     });
   });
 });

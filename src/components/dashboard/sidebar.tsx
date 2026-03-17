@@ -16,7 +16,7 @@ import {
   Settings,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import {
   Sheet,
@@ -153,6 +153,7 @@ function SidebarContent({
                 }
               >
                 <Avatar size="sm">
+                  <AvatarImage src={user?.avatarUrl ?? undefined} alt={user?.name ?? "Пользователь"} />
                   <AvatarFallback className="bg-indigo-600 text-xs text-white">
                     {initials}
                   </AvatarFallback>
@@ -164,6 +165,7 @@ function SidebarContent({
         ) : (
           <div className="flex items-center gap-3">
             <Avatar size="default">
+              <AvatarImage src={user?.avatarUrl ?? undefined} alt={user?.name ?? "Пользователь"} />
               <AvatarFallback className="bg-indigo-600 text-xs text-white">
                 {initials}
               </AvatarFallback>

@@ -11,20 +11,17 @@ export function useNotifications() {
   const refresh = useCallback(async () => {
     try {
       const count = await getUnreadCount();
-      setUnreadCount((prev) => {
-        // Show toast when new notifications arrive
-        if (count > prevCountRef.current && prevCountRef.current >= 0) {
-          const newCount = count - prevCountRef.current;
-          toast.info(
-            newCount === 1
-              ? "Новое уведомление"
-              : `${newCount} новых уведомлений`,
-            { description: "Нажмите на колокольчик для просмотра" }
-          );
-        }
-        prevCountRef.current = count;
-        return count;
-      });
+      if (count > prevCountRef.current && prevCountRef.current >= 0) {
+        const newCount = count - prevCountRef.current;
+        toast.info(
+          newCount === 1
+            ? "Новое уведомление"
+            : `${newCount} новых уведомлений`,
+          { description: "Нажмите на колокольчик для просмотра" }
+        );
+      }
+      prevCountRef.current = count;
+      setUnreadCount(count);
     } catch {
       // ignore errors
     }

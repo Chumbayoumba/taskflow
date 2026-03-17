@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useTransition, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { updateProfile, getNotificationPrefs, saveNotificationPrefs } from "@/actions/user";
 import type { NotificationPrefs } from "@/actions/user";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -22,6 +24,8 @@ interface SettingsFormProps {
 }
 
 export function SettingsForm({ user }: SettingsFormProps) {
+  const router = useRouter();
+  const { update } = useSession();
   const [isPending, startTransition] = useTransition();
   const [name, setName] = useState(user.name);
   const [avatarUrl, setAvatarUrl] = useState(user.avatarUrl);
@@ -64,7 +68,7 @@ export function SettingsForm({ user }: SettingsFormProps) {
       invited: key === "invited" ? value : notifInvited,
     };
 
-    saveNotificationPrefs(currentPrefs);
+    void saveNotificationPrefs(currentPrefs);
   }
 
   function handleSaveProfile() {
@@ -72,6 +76,8 @@ export function SettingsForm({ user }: SettingsFormProps) {
     startTransition(async () => {
       const result = await updateProfile({ name });
       if (result.success) {
+        await update({ name: name.trim() });
+        router.refresh();
         setMessage({ type: "success", text: "Профиль обновлён" });
       } else {
         setMessage({ type: "error", text: result.error || "Ошибка" });
@@ -102,6 +108,11 @@ export function SettingsForm({ user }: SettingsFormProps) {
 
       const data = await res.json();
       setAvatarUrl(data.avatarUrl);
+      await update({ avatarUrl: data.avatarUrl });
+      router.refresh();
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
       setMessage({ type: "success", text: "Аватар обновлён" });
     } catch (err) {
       setMessage({ type: "error", text: err instanceof Error ? err.message : "Ошибка загрузки" });
@@ -135,7 +146,11 @@ export function SettingsForm({ user }: SettingsFormProps) {
           <div className="flex items-center gap-4">
             <div className="relative group">
               <Avatar className="h-20 w-20">
-                <AvatarImage src={avatarUrl || undefined} alt={user.name} />
+                <AvatarImage
+                  key={avatarUrl ?? "avatar-fallback"}
+                  src={avatarUrl || undefined}
+                  alt={user.name}
+                />
                 <AvatarFallback className="text-lg">{initials}</AvatarFallback>
               </Avatar>
               <button

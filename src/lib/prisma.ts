@@ -1,16 +1,18 @@
 import { PrismaClient } from "@/generated/prisma/client";
 
 function createPrismaClient() {
-  if (process.env.NODE_ENV === "production") {
+  const databaseUrl = process.env.DATABASE_URL ?? "file:./dev.db";
+
+  if (databaseUrl.startsWith("postgresql://") || databaseUrl.startsWith("postgres://")) {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { PrismaPg } = require("@prisma/adapter-pg");
-    const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+    const adapter = new PrismaPg({ connectionString: databaseUrl });
     return new PrismaClient({ adapter });
   }
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { PrismaBetterSqlite3 } = require("@prisma/adapter-better-sqlite3");
   const adapter = new PrismaBetterSqlite3({
-    url: process.env.DATABASE_URL ?? "file:./dev.db",
+    url: databaseUrl,
   });
   return new PrismaClient({ adapter });
 }

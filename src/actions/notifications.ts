@@ -11,15 +11,18 @@ async function getCurrentUserId(): Promise<string> {
   return session.user.id;
 }
 
-export async function getNotifications(): Promise<NotificationWithTask[]> {
-  const userId = await getCurrentUserId();
-
-  // Auto-check deadlines on every notification fetch
+async function syncDeadlinesSafely() {
   try {
     await checkDeadlines();
   } catch {
-    // Don't block notification fetch if deadline check fails
+    // Don't block notification UI if deadline sync fails
   }
+}
+
+export async function getNotifications(): Promise<NotificationWithTask[]> {
+  const userId = await getCurrentUserId();
+
+  await syncDeadlinesSafely();
 
   return prisma.notification.findMany({
     where: { userId },
@@ -33,6 +36,7 @@ export async function getNotifications(): Promise<NotificationWithTask[]> {
 
 export async function getUnreadCount(): Promise<number> {
   const userId = await getCurrentUserId();
+  await syncDeadlinesSafely();
 
   return prisma.notification.count({
     where: { userId, read: false },
