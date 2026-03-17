@@ -72,32 +72,50 @@ export async function checkDeadlines(): Promise<void> {
     where: {
       deadline: { gte: now, lte: in24h },
       status: { not: "DONE" },
-      assigneeId: { not: null },
     },
-    select: { id: true, title: true, assigneeId: true },
+    select: {
+      id: true,
+      title: true,
+      assigneeId: true,
+      creatorId: true,
+      project: {
+        select: {
+          ownerId: true,
+          members: { where: { role: "ADMIN" }, select: { userId: true } },
+        },
+      },
+    },
   });
 
   for (const task of upcomingTasks) {
-    if (!task.assigneeId) continue;
+    const recipientIds = new Set<string>();
+    if (task.assigneeId) recipientIds.add(task.assigneeId);
+    recipientIds.add(task.creatorId);
+    recipientIds.add(task.project.ownerId);
+    for (const member of task.project.members) {
+      recipientIds.add(member.userId);
+    }
 
-    const existing = await prisma.notification.findFirst({
-      where: {
-        taskId: task.id,
-        type: "DEADLINE_WARNING",
-        userId: task.assigneeId,
-        createdAt: { gte: new Date(now.getTime() - 24 * 60 * 60 * 1000) },
-      },
-    });
-
-    if (!existing) {
-      await prisma.notification.create({
-        data: {
-          type: "DEADLINE_WARNING",
-          message: `Дедлайн задачи "${task.title}" через менее 24 часов`,
-          userId: task.assigneeId,
+    for (const recipientId of recipientIds) {
+      const existing = await prisma.notification.findFirst({
+        where: {
           taskId: task.id,
+          type: "DEADLINE_WARNING",
+          userId: recipientId,
+          createdAt: { gte: new Date(now.getTime() - 24 * 60 * 60 * 1000) },
         },
       });
+
+      if (!existing) {
+        await prisma.notification.create({
+          data: {
+            type: "DEADLINE_WARNING",
+            message: `Дедлайн задачи "${task.title}" через менее 24 часов`,
+            userId: recipientId,
+            taskId: task.id,
+          },
+        });
+      }
     }
   }
 
@@ -106,32 +124,50 @@ export async function checkDeadlines(): Promise<void> {
     where: {
       deadline: { lt: now },
       status: { not: "DONE" },
-      assigneeId: { not: null },
     },
-    select: { id: true, title: true, assigneeId: true },
+    select: {
+      id: true,
+      title: true,
+      assigneeId: true,
+      creatorId: true,
+      project: {
+        select: {
+          ownerId: true,
+          members: { where: { role: "ADMIN" }, select: { userId: true } },
+        },
+      },
+    },
   });
 
   for (const task of overdueTasks) {
-    if (!task.assigneeId) continue;
+    const recipientIds = new Set<string>();
+    if (task.assigneeId) recipientIds.add(task.assigneeId);
+    recipientIds.add(task.creatorId);
+    recipientIds.add(task.project.ownerId);
+    for (const member of task.project.members) {
+      recipientIds.add(member.userId);
+    }
 
-    const existing = await prisma.notification.findFirst({
-      where: {
-        taskId: task.id,
-        type: "DEADLINE_OVERDUE",
-        userId: task.assigneeId,
-        createdAt: { gte: new Date(now.getTime() - 24 * 60 * 60 * 1000) },
-      },
-    });
-
-    if (!existing) {
-      await prisma.notification.create({
-        data: {
-          type: "DEADLINE_OVERDUE",
-          message: `Дедлайн задачи "${task.title}" просрочен!`,
-          userId: task.assigneeId,
+    for (const recipientId of recipientIds) {
+      const existing = await prisma.notification.findFirst({
+        where: {
           taskId: task.id,
+          type: "DEADLINE_OVERDUE",
+          userId: recipientId,
+          createdAt: { gte: new Date(now.getTime() - 24 * 60 * 60 * 1000) },
         },
       });
+
+      if (!existing) {
+        await prisma.notification.create({
+          data: {
+            type: "DEADLINE_OVERDUE",
+            message: `Дедлайн задачи "${task.title}" просрочен!`,
+            userId: recipientId,
+            taskId: task.id,
+          },
+        });
+      }
     }
   }
 }

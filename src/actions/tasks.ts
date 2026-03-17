@@ -60,8 +60,8 @@ export async function createTask(
     },
   });
 
-  // Notification for assignee
-  if (parsed.data.assigneeId && parsed.data.assigneeId !== userId) {
+  // Notification for assignee (including self-assignment)
+  if (parsed.data.assigneeId) {
     await prisma.notification.create({
       data: {
         type: "TASK_ASSIGNED",
@@ -70,6 +70,38 @@ export async function createTask(
         taskId: task.id,
       },
     });
+  }
+
+  // Notify project owner and admins about new task
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: {
+      ownerId: true,
+      members: { where: { role: "ADMIN" }, select: { userId: true } },
+    },
+  });
+
+  if (project) {
+    const notifyUserIds = new Set<string>();
+    notifyUserIds.add(project.ownerId);
+    for (const member of project.members) {
+      notifyUserIds.add(member.userId);
+    }
+    notifyUserIds.delete(userId);
+    if (parsed.data.assigneeId) {
+      notifyUserIds.delete(parsed.data.assigneeId);
+    }
+
+    for (const uid of notifyUserIds) {
+      await prisma.notification.create({
+        data: {
+          type: "TASK_CREATED",
+          message: `Создана новая задача: ${parsed.data.title}`,
+          userId: uid,
+          taskId: task.id,
+        },
+      });
+    }
   }
 
   // Log activity
@@ -162,8 +194,7 @@ export async function updateTask(
   const newAssigneeId = newAssigneeRaw;
   if (
     newAssigneeId &&
-    newAssigneeId !== task.assigneeId &&
-    newAssigneeId !== userId
+    newAssigneeId !== task.assigneeId
   ) {
     await prisma.notification.create({
       data: {
@@ -188,7 +219,19 @@ export async function moveTask(
 
   const task = await prisma.task.findUnique({
     where: { id: taskId },
-    select: { projectId: true, status: true, assigneeId: true, title: true, creatorId: true },
+    select: {
+      projectId: true,
+      status: true,
+      assigneeId: true,
+      title: true,
+      creatorId: true,
+      project: {
+        select: {
+          ownerId: true,
+          members: { where: { role: "ADMIN" }, select: { userId: true } },
+        },
+      },
+    },
   });
   if (!task) return { success: false, error: "Задача не найдена" };
 
@@ -207,11 +250,15 @@ export async function moveTask(
     // Log activity
     await logActivity(taskId, userId, "STATUS_CHANGED", task.status, newStatus);
 
-    // Notify about status change
+    // Notify about status change (assignee, creator, owner, admins)
     const notifyUserIds = new Set<string>();
     if (task.assigneeId && task.assigneeId !== userId)
       notifyUserIds.add(task.assigneeId);
     if (task.creatorId !== userId) notifyUserIds.add(task.creatorId);
+    if (task.project.ownerId !== userId) notifyUserIds.add(task.project.ownerId);
+    for (const member of task.project.members) {
+      if (member.userId !== userId) notifyUserIds.add(member.userId);
+    }
 
     for (const uid of notifyUserIds) {
       await prisma.notification.create({
