@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { updateTask } from "@/actions/tasks";
 import { TASK_STATUS_MAP, TASK_PRIORITY_MAP } from "@/lib/constants";
 import type { TaskWithDetails } from "@/types";
@@ -120,7 +120,11 @@ export function TaskSidebar({ task, members, projectId }: TaskSidebarProps) {
             disabled={isPending}
           >
             <SelectTrigger className="h-9">
-              <SelectValue />
+              <SelectValue>
+                {task.assigneeId
+                  ? (members.find((m) => m.id === task.assigneeId)?.name ?? "Не назначен")
+                  : "Не назначен"}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="unassigned">Не назначен</SelectItem>
@@ -157,6 +161,7 @@ export function TaskSidebar({ task, members, projectId }: TaskSidebarProps) {
               <span className="text-muted-foreground">Создатель:</span>
               <div className="flex items-center gap-1.5">
                 <Avatar className="h-5 w-5">
+                  <AvatarImage src={creator.avatarUrl ?? undefined} />
                   <AvatarFallback className="text-[10px]">
                     {creator.name?.charAt(0)?.toUpperCase() || "?"}
                   </AvatarFallback>
@@ -173,6 +178,7 @@ export function TaskSidebar({ task, members, projectId }: TaskSidebarProps) {
               <span className="text-muted-foreground">Исполнитель:</span>
               <div className="flex items-center gap-1.5">
                 <Avatar className="h-5 w-5">
+                  <AvatarImage src={assignee.avatarUrl ?? undefined} />
                   <AvatarFallback className="text-[10px]">
                     {assignee.name?.charAt(0)?.toUpperCase() || "?"}
                   </AvatarFallback>

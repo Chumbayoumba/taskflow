@@ -12,5 +12,6 @@ export function useCurrentUser(): SessionUser | null {
     id: session.user.id as string,
     name: session.user.name ?? "",
     email: session.user.email ?? "",
+    avatarUrl: (session.user as Record<string, unknown>).avatarUrl as string | null ?? null,
   };
 }

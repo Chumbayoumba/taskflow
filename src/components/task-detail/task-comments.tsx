@@ -8,7 +8,7 @@ import { Send, Pencil, Trash2, Check, X, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { createComment, updateComment, deleteComment } from "@/actions/comments";
 
 interface Comment {
@@ -86,6 +86,7 @@ export function TaskComments({ taskId, comments, currentUserId }: TaskCommentsPr
             {comments.map((comment) => (
               <div key={comment.id} className="flex gap-3">
                 <Avatar className="h-8 w-8 flex-shrink-0">
+                  <AvatarImage src={comment.author.avatarUrl ?? undefined} />
                   <AvatarFallback className="text-xs">
                     {comment.author.name?.charAt(0)?.toUpperCase() || "?"}
                   </AvatarFallback>

@@ -33,6 +33,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           id: user.id,
           name: user.name,
           email: user.email,
+          avatarUrl: user.avatarUrl,
         };
       },
     }),
@@ -42,12 +43,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.avatarUrl = (user as unknown as Record<string, unknown>).avatarUrl ?? null;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
+        (session.user as unknown as Record<string, unknown>).avatarUrl = token.avatarUrl as string | null;
       }
       return session;
     },

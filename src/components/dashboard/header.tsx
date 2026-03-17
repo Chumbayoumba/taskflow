@@ -12,7 +12,7 @@ import {
   User as UserIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -135,6 +135,7 @@ export function Header() {
             }
           >
             <Avatar size="sm">
+              <AvatarImage src={user?.avatarUrl ?? undefined} />
               <AvatarFallback className="bg-indigo-600 text-xs text-white">
                 {initials}
               </AvatarFallback>
