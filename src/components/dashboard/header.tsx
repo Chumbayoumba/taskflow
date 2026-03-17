@@ -118,10 +118,14 @@ export function Header() {
           size="icon"
           className="relative text-muted-foreground hover:text-foreground"
           render={<Link href="/notifications" />}
+          aria-label="Уведомления"
         >
           <Bell className="size-5" />
           {unreadCount > 0 && (
-            <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+            <span
+              aria-label={`${unreadCount} непрочитанных уведомлений`}
+              className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white"
+            >
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}

@@ -1,202 +1,198 @@
-# 🚀 TaskFlow — SaaS-платформа для управления задачами
+# TaskFlow
 
-**Живая демо-версия:** [https://taskflow.egor-dev.ru](https://taskflow.egor-dev.ru)
+SaaS-приложение для командного управления задачами: проекты, Kanban-доски, детальные страницы задач, комментарии, чеклисты, зависимости, теги, аналитика и уведомления.
 
-Полнофункциональная SaaS-платформа для управления задачами команды с Kanban-доской, ролевой системой, аналитикой и уведомлениями в реальном времени.
+Прод: [https://taskflow.egor-dev.ru](https://taskflow.egor-dev.ru)
 
----
+GitHub: [https://github.com/Chumbayoumba/taskflow](https://github.com/Chumbayoumba/taskflow)
 
-## 📋 Реализованные функциональные требования
+## Что реализовано
 
-| # | Требование | Статус | Описание реализации |
-|---|-----------|--------|-------------------|
-| 1 | Регистрация и авторизация (email + пароль) | ✅ | Auth.js v5 с Credentials-провайдером, JWT-сессии, валидация через Zod, индикатор надёжности пароля |
-| 2 | Создание проектов с участниками | ✅ | CRUD проектов, приглашение участников по email, цветовая маркировка |
-| 3 | Задачи: название, описание, исполнитель, дедлайн, приоритет | ✅ | Полная форма создания и редактирования задач со всеми полями |
-| 4 | Статусы: To Do → In Progress → Review → Done | ✅ | 4 колонки на Kanban-доске с соответствующими статусами |
-| 5 | Kanban-доска с drag-and-drop | ✅ | HTML5 Drag and Drop API, оптимистичные обновления через Zustand |
-| 6 | Уведомления о дедлайнах | ✅ | Автоматическая проверка дедлайнов (за 24ч и просроченные), уведомления о назначении и смене статуса |
-| 7 | Аналитика: задачи по статусам, просроченные | ✅ | Интерактивные графики (Recharts): распределение по статусам, приоритетам, просроченные задачи |
+### Core workflow
 
-## 📋 Реализованные технические требования
+- Регистрация и логин через email + password
+- Проекты с owner / admin / member ролями
+- Kanban flow: `TODO → IN_PROGRESS → REVIEW → DONE`
+- Drag-and-drop задач на доске
+- Приоритеты: `LOW / MEDIUM / HIGH / URGENT`
+- Дедлайны, исполнитель, создатель, история изменений
 
-| # | Требование | Статус | Описание |
-|---|-----------|--------|----------|
-| 1 | Стек: Next.js + Prisma + PostgreSQL | ✅ | Next.js 16, Prisma 7, PostgreSQL 16 |
-| 2 | Деплой на публичный URL | ✅ | [https://taskflow.egor-dev.ru](https://taskflow.egor-dev.ru) — Hetzner VPS + Nginx + PM2 + Cloudflare SSL |
-| 3 | GitHub с README | ✅ | [https://github.com/Chumbayoumba/taskflow](https://github.com/Chumbayoumba/taskflow) |
+### Task management
 
----
+- Отдельная страница задачи
+- Комментарии внутри задачи
+- Activity feed по изменениям
+- Checklist с отметкой времени завершения
+- Зависимости между задачами
+- Теги и фильтрация доски
+- Глобальный поиск по задачам и проектам
 
-## ✨ Дополнительный функционал (сверх ТЗ)
+### Notifications
 
-- **🔒 Ролевая система** — Owner / Admin / Member с гранулярными правами доступа
-- **⚙️ Настройки проекта** — переименование, описание, цветовая маркировка, удаление (только Owner)
-- **👥 Управление участниками** — приглашение по email, смена ролей, удаление из проекта
-- **🔍 Глобальный поиск** — поиск задач и проектов через диалог в хедере
-- **🎨 Современный дизайн** — шрифт Inter, цветовая индикация приоритетов и статусов
-- **📱 Адаптивный интерфейс** — корректная работа на десктопе, планшете и мобильных
-- **🔔 Центр уведомлений** — отдельная страница со всеми уведомлениями и пометкой «прочитано»
-- **📊 Dashboard** — сводная панель со статистикой по всем проектам
+- Уведомления о назначении задачи
+- Уведомления о смене статуса
+- Deadline warning за 24 часа
+- Overdue notifications
+- Badge непрочитанных уведомлений в header и sidebar
+- Toast-уведомления в интерфейсе
+- Настройки типов уведомлений в профиле
 
----
+### Profile / UX
 
-## 🛠 Стек технологий
+- Загрузка аватара в настройках
+- Мгновенное обновление аватара в settings, header и sidebar
+- Аватары в карточках и деталях задач
+- Responsive layout
 
-| Слой | Технология |
-|------|-----------|
-| **Фреймворк** | Next.js 16 (App Router, Server Components, Server Actions) |
-| **Язык** | TypeScript (strict mode) |
-| **ORM** | Prisma 7 с PostgreSQL driver adapter |
-| **База данных** | PostgreSQL 16 |
-| **Аутентификация** | Auth.js v5 (NextAuth) — Credentials + JWT |
-| **UI-библиотека** | shadcn/ui (Base UI) + Tailwind CSS 4 |
-| **Drag and Drop** | HTML5 DnD API |
-| **Менеджер состояния** | Zustand (оптимистичные обновления) |
-| **Валидация** | Zod (клиент + сервер) |
-| **Графики** | Recharts |
-| **Иконки** | Lucide React |
-| **Хостинг** | Hetzner VPS + Nginx + PM2 + Cloudflare |
+### Analytics
 
----
+- Общая статистика по проекту
+- Распределение задач по статусам
+- Распределение по приоритетам
+- Completion rate
+- Просроченные задачи
 
-## 📁 Структура проекта
+## Технический стек
 
-```
-src/
-├── app/
-│   ├── (auth)/                # Страницы входа и регистрации
-│   ├── (dashboard)/           # Защищённые маршруты
-│   │   ├── dashboard/         # Главная панель
-│   │   ├── projects/          # CRUD проектов
-│   │   │   └── [projectId]/   # Страницы проекта
-│   │   │       ├── board/     # Kanban-доска
-│   │   │       ├── members/   # Управление участниками
-│   │   │       ├── analytics/ # Аналитика и графики
-│   │   │       └── settings/  # Настройки проекта
-│   │   ├── notifications/     # Центр уведомлений
-│   │   └── settings/          # Настройки пользователя
-│   └── api/auth/              # API-маршруты Auth.js
-├── actions/                   # Server Actions (auth, проекты, задачи, уведомления)
-├── components/
-│   ├── ui/                    # shadcn/ui компоненты
-│   ├── auth/                  # Формы входа и регистрации
-│   ├── dashboard/             # Sidebar, Header
-│   ├── kanban/                # Board, Column, TaskCard, TaskDialog
-│   ├── members/               # Управление участниками
-│   └── project/               # Вкладки проекта, настройки
-├── lib/                       # Prisma-клиент, утилиты, константы
-├── store/                     # Zustand stores
-├── hooks/                     # Кастомные React-хуки
-├── validations/               # Zod-схемы валидации
-└── types/                     # TypeScript-типы
-```
+- Next.js 16 (App Router)
+- React 19
+- TypeScript (strict)
+- Prisma 7
+- Auth.js v5
+- Zustand
+- Tailwind CSS 4
+- shadcn/ui + Base UI
+- Sonner
+- Recharts
+- Vitest
 
----
+## База данных и Prisma
 
-## 🏗 Архитектурные решения
+Проект поддерживает два режима:
 
-- **Server Components по умолчанию** — Client Components только для интерактивности (формы, drag-and-drop, графики)
-- **Server Actions** — все мутации данных через Next.js Server Actions с Zod-валидацией
-- **JWT-сессии** — оптимизированы для Edge Middleware, не требуют хранения сессий в БД
-- **Оптимистичные обновления** — Zustand store для мгновенного отклика при перетаскивании задач на Kanban-доске
-- **Автоматическая проверка дедлайнов** — интегрирована в систему уведомлений, проверяется при каждом запросе
-- **Ролевая модель доступа** — Owner контролирует участников и настройки проекта, Admin может приглашать участников, Member работает с задачами
+- **local/dev**: SQLite через `@prisma/adapter-better-sqlite3`
+- **production**: PostgreSQL через `@prisma/adapter-pg`
 
----
+Выбор адаптера делается автоматически по `DATABASE_URL`.
 
-## 🚀 Быстрый старт
-
-### Требования
-
-- Node.js 20+
-- PostgreSQL 16+
-
-### Установка
-
-```bash
-# Клонировать репозиторий
-git clone https://github.com/Chumbayoumba/taskflow.git
-cd taskflow
-
-# Установить зависимости
-npm install
-
-# Сгенерировать Prisma-клиент
-npx prisma generate
-
-# Применить схему к базе данных
-npx prisma db push
-
-# Заполнить демо-данными (опционально — создаёт тестовых пользователей и проекты)
-npx tsx prisma/seed.ts
-
-# Запустить сервер разработки
-npm run dev
-```
-
-### Переменные окружения
-
-Создайте файл `.env` в корне проекта:
+Примеры:
 
 ```env
-# База данных
-DATABASE_URL="postgresql://user:pass@localhost:5432/taskflow"
+# Local SQLite
+DATABASE_URL="file:./dev.db"
 
-# Секрет Auth.js (сгенерировать: openssl rand -base64 32)
-AUTH_SECRET="ваш-секретный-ключ"
+# Production PostgreSQL
+DATABASE_URL="postgresql://user:password@localhost:5432/taskflow"
+```
 
-# URL приложения
+## Быстрый старт
+
+### 1. Установка
+
+```bash
+git clone https://github.com/Chumbayoumba/taskflow.git
+cd taskflow
+npm install
+```
+
+### 2. Настройка окружения
+
+Создай `.env`:
+
+```env
+DATABASE_URL="file:./dev.db"
+AUTH_SECRET="your-secret"
 NEXTAUTH_URL="http://localhost:3000"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 AUTH_TRUST_HOST=true
 ```
 
-### Демо-аккаунты (после seed)
+### 3. Prisma
 
-| Email | Пароль | Роль |
-|-------|--------|------|
-| alice@example.com | Password123 | Owner (владелец) |
-| bob@example.com | Password123 | Admin (администратор) |
-| charlie@example.com | Password123 | Member (участник) |
+```bash
+npx prisma generate
+npx prisma db push
+```
 
----
+### 4. Seed (опционально)
 
-## 📊 Схема базы данных
+```bash
+npx tsx prisma/seed.ts
+```
 
-| Таблица | Описание |
-|---------|----------|
-| **User** | Пользователи — имя, email, хеш пароля |
-| **Project** | Проекты — название, описание, цветовая маркировка |
-| **ProjectMember** | Участники проекта — роль (Owner / Admin / Member) |
-| **Task** | Задачи — название, описание, статус, приоритет, исполнитель, дедлайн |
-| **Notification** | Уведомления — назначение задачи, предупреждение о дедлайне, смена статуса, приглашение |
+### 5. Запуск
 
----
+```bash
+npm run dev
+```
 
-## 📦 Деплой
+## Команды
 
-Развёрнуто на **Hetzner VPS**:
-- **Nginx** — reverse proxy с SSL через Cloudflare
-- **PM2** — менеджер процессов Node.js
-- **PostgreSQL 16** — продакшен база данных
-- **Node.js 20** — серверная среда выполнения
+```bash
+npm run dev
+npm run test
+npm run lint
+npm run build
+```
 
-🔗 **Продакшен:** [https://taskflow.egor-dev.ru](https://taskflow.egor-dev.ru)
+## Структура проекта
 
----
+```text
+src/
+  actions/        server actions
+  app/            routes and pages
+  components/     UI by feature
+  generated/      prisma client
+  hooks/          custom hooks
+  lib/            prisma, constants, utils
+  store/          zustand stores
+  types/          shared types
+  validations/    zod schemas
+prisma/
+  schema.prisma
+  seed.ts
+```
 
-## 🤝 Сложности и решения
+## Ключевые архитектурные решения
 
-| Сложность | Решение |
-|-----------|---------|
-| Base UI Select показывал ID вместо имён участников | Переписан на controlled-компоненты с ручным отображением текста |
-| Prisma 7 требует driver adapter вместо прямого подключения | Реализован через `@prisma/adapter-pg` с кастом типов |
-| Auth.js v5 за reverse proxy не доверял хосту | Добавлен `AUTH_TRUST_HOST=true` для корректной работы за Cloudflare |
-| Оптимистичные обновления при drag-and-drop | Zustand store с немедленным обновлением UI и откатом при ошибке сервера |
+- Server Actions для мутаций
+- JWT session strategy в Auth.js
+- Optimistic UI для Kanban
+- Автоматическая генерация deadline notifications при notification polling
+- Общий session-based current user для header/sidebar
+- Regression tests на критичные баги уведомлений и аватаров
 
----
+## Верификация
 
-## 📄 Лицензия
+Перед последним деплоем проект был полностью проверен:
+
+- `npm run test`
+- `npm run lint`
+- `npm run build`
+
+Все проверки проходят успешно.
+
+## Production
+
+Текущий production deploy:
+
+- VPS + PM2
+- Nginx reverse proxy
+- Cloudflare
+- PostgreSQL
+
+URL: [https://taskflow.egor-dev.ru](https://taskflow.egor-dev.ru)
+
+## Статус репозитория
+
+Репозиторий поддерживается в актуальном состоянии. README описывает текущее поведение системы, включая:
+
+- task detail workflow
+- notifications
+- avatars
+- local/prod database setup
+- verification commands
+
+## License
 
 MIT
