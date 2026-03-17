@@ -1,14 +1,16 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { updateProfile } from "@/actions/user";
+import { useState, useTransition, useEffect, useRef } from "react";
+import { updateProfile, getNotificationPrefs, saveNotificationPrefs } from "@/actions/user";
+import type { NotificationPrefs } from "@/actions/user";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Save, User, Bell, Shield } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Loader2, Save, User, Bell, Shield, Camera } from "lucide-react";
 
 interface SettingsFormProps {
   user: {
@@ -22,13 +24,48 @@ interface SettingsFormProps {
 export function SettingsForm({ user }: SettingsFormProps) {
   const [isPending, startTransition] = useTransition();
   const [name, setName] = useState(user.name);
+  const [avatarUrl, setAvatarUrl] = useState(user.avatarUrl);
+  const [isUploading, setIsUploading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Notification preferences (client-side for now)
+  // Notification preferences (persisted to DB)
   const [notifAssigned, setNotifAssigned] = useState(true);
   const [notifStatusChanged, setNotifStatusChanged] = useState(true);
   const [notifDeadline, setNotifDeadline] = useState(true);
   const [notifInvited, setNotifInvited] = useState(true);
+  const [notifLoaded, setNotifLoaded] = useState(false);
+
+  // Load notification prefs from DB on mount
+  useEffect(() => {
+    getNotificationPrefs().then((prefs) => {
+      setNotifAssigned(prefs.assigned);
+      setNotifStatusChanged(prefs.statusChanged);
+      setNotifDeadline(prefs.deadline);
+      setNotifInvited(prefs.invited);
+      setNotifLoaded(true);
+    });
+  }, []);
+
+  // Save notification prefs when changed (after initial load)
+  function handleNotifChange(key: keyof NotificationPrefs, value: boolean) {
+    const setters: Record<keyof NotificationPrefs, (v: boolean) => void> = {
+      assigned: setNotifAssigned,
+      statusChanged: setNotifStatusChanged,
+      deadline: setNotifDeadline,
+      invited: setNotifInvited,
+    };
+    setters[key](value);
+
+    const currentPrefs: NotificationPrefs = {
+      assigned: key === "assigned" ? value : notifAssigned,
+      statusChanged: key === "statusChanged" ? value : notifStatusChanged,
+      deadline: key === "deadline" ? value : notifDeadline,
+      invited: key === "invited" ? value : notifInvited,
+    };
+
+    saveNotificationPrefs(currentPrefs);
+  }
 
   function handleSaveProfile() {
     setMessage(null);
@@ -41,6 +78,44 @@ export function SettingsForm({ user }: SettingsFormProps) {
       }
     });
   }
+
+  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    setMessage(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("avatar", file);
+
+      const res = await fetch("/api/upload/avatar", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Ошибка загрузки");
+      }
+
+      const data = await res.json();
+      setAvatarUrl(data.avatarUrl);
+      setMessage({ type: "success", text: "Аватар обновлён" });
+    } catch (err) {
+      setMessage({ type: "error", text: err instanceof Error ? err.message : "Ошибка загрузки" });
+    } finally {
+      setIsUploading(false);
+    }
+  }
+
+  const initials = user.name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 
   return (
     <div className="space-y-6">
@@ -56,6 +131,52 @@ export function SettingsForm({ user }: SettingsFormProps) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Avatar Upload */}
+          <div className="flex items-center gap-4">
+            <div className="relative group">
+              <Avatar className="h-20 w-20">
+                <AvatarImage src={avatarUrl || undefined} alt={user.name} />
+                <AvatarFallback className="text-lg">{initials}</AvatarFallback>
+              </Avatar>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+              >
+                {isUploading ? (
+                  <Loader2 className="h-6 w-6 text-white animate-spin" />
+                ) : (
+                  <Camera className="h-6 w-6 text-white" />
+                )}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                onChange={handleAvatarUpload}
+                className="hidden"
+              />
+            </div>
+            <div>
+              <p className="text-sm font-medium">Фото профиля</p>
+              <p className="text-xs text-muted-foreground">
+                JPG, PNG, WebP или GIF. Макс. 5 МБ.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-1"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+              >
+                {isUploading ? "Загрузка..." : "Загрузить фото"}
+              </Button>
+            </div>
+          </div>
+
+          <Separator />
+
           <div className="space-y-2">
             <Label htmlFor="name">Имя</Label>
             <Input
@@ -115,7 +236,11 @@ export function SettingsForm({ user }: SettingsFormProps) {
                 Когда вам назначают задачу
               </p>
             </div>
-            <Switch checked={notifAssigned} onCheckedChange={setNotifAssigned} />
+            <Switch
+              checked={notifAssigned}
+              onCheckedChange={(v) => handleNotifChange("assigned", v)}
+              disabled={!notifLoaded}
+            />
           </div>
           <Separator />
           <div className="flex items-center justify-between">
@@ -125,7 +250,11 @@ export function SettingsForm({ user }: SettingsFormProps) {
                 Когда статус вашей задачи меняется
               </p>
             </div>
-            <Switch checked={notifStatusChanged} onCheckedChange={setNotifStatusChanged} />
+            <Switch
+              checked={notifStatusChanged}
+              onCheckedChange={(v) => handleNotifChange("statusChanged", v)}
+              disabled={!notifLoaded}
+            />
           </div>
           <Separator />
           <div className="flex items-center justify-between">
@@ -135,7 +264,11 @@ export function SettingsForm({ user }: SettingsFormProps) {
                 Предупреждения о приближающихся и просроченных дедлайнах
               </p>
             </div>
-            <Switch checked={notifDeadline} onCheckedChange={setNotifDeadline} />
+            <Switch
+              checked={notifDeadline}
+              onCheckedChange={(v) => handleNotifChange("deadline", v)}
+              disabled={!notifLoaded}
+            />
           </div>
           <Separator />
           <div className="flex items-center justify-between">
@@ -145,7 +278,11 @@ export function SettingsForm({ user }: SettingsFormProps) {
                 Когда вас приглашают в новый проект
               </p>
             </div>
-            <Switch checked={notifInvited} onCheckedChange={setNotifInvited} />
+            <Switch
+              checked={notifInvited}
+              onCheckedChange={(v) => handleNotifChange("invited", v)}
+              disabled={!notifLoaded}
+            />
           </div>
         </CardContent>
       </Card>

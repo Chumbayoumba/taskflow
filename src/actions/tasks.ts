@@ -173,11 +173,25 @@ export async function updateTask(
     await logActivity(taskId, userId, "ASSIGNED", task.assigneeId ?? undefined, newAssigneeRaw ?? undefined);
   }
 
-  // Notifications
+  // Notifications for status change (assignee, creator, owner, admins)
   if (status && status !== task.status) {
+    const project = await prisma.project.findUnique({
+      where: { id: task.projectId },
+      select: {
+        ownerId: true,
+        members: { where: { role: "ADMIN" }, select: { userId: true } },
+      },
+    });
+
     const notifyUserIds = new Set<string>();
-    if (task.assigneeId && task.assigneeId !== userId)
-      notifyUserIds.add(task.assigneeId);
+    if (task.assigneeId) notifyUserIds.add(task.assigneeId);
+    if (project) {
+      notifyUserIds.add(project.ownerId);
+      for (const member of project.members) {
+        notifyUserIds.add(member.userId);
+      }
+    }
+    notifyUserIds.delete(userId);
 
     for (const uid of notifyUserIds) {
       await prisma.notification.create({

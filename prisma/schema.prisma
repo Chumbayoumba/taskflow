@@ -9,13 +9,14 @@ datasource db {
 
 // ==================== USER ====================
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  name         String
-  passwordHash String
-  avatarUrl    String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                String   @id @default(cuid())
+  email             String   @unique
+  name              String
+  passwordHash      String
+  avatarUrl         String?
+  notificationPrefs String?  // JSON: {assigned, statusChanged, deadline, invited}
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   ownedProjects Project[]       @relation("ProjectOwner")
   memberships   ProjectMember[]
@@ -124,13 +125,14 @@ model Comment {
 
 // ==================== CHECKLIST ITEM ====================
 model ChecklistItem {
-  id        String   @id @default(cuid())
-  title     String
-  completed Boolean  @default(false)
-  order     Int      @default(0)
-  taskId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String    @id @default(cuid())
+  title       String
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+  order       Int       @default(0)
+  taskId      String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
 

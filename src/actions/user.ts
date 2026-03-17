@@ -11,6 +11,48 @@ async function getCurrentUserId(): Promise<string> {
   return session.user.id;
 }
 
+export interface NotificationPrefs {
+  assigned: boolean;
+  statusChanged: boolean;
+  deadline: boolean;
+  invited: boolean;
+}
+
+const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
+  assigned: true,
+  statusChanged: true,
+  deadline: true,
+  invited: true,
+};
+
+export async function getNotificationPrefs(): Promise<NotificationPrefs> {
+  const userId = await getCurrentUserId();
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { notificationPrefs: true },
+  });
+
+  if (!user?.notificationPrefs) return DEFAULT_NOTIFICATION_PREFS;
+
+  try {
+    return { ...DEFAULT_NOTIFICATION_PREFS, ...JSON.parse(user.notificationPrefs) };
+  } catch {
+    return DEFAULT_NOTIFICATION_PREFS;
+  }
+}
+
+export async function saveNotificationPrefs(prefs: NotificationPrefs): Promise<ActionResult> {
+  const userId = await getCurrentUserId();
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: { notificationPrefs: JSON.stringify(prefs) },
+  });
+
+  revalidatePath("/settings");
+  return { success: true, data: undefined };
+}
+
 export async function updateProfile(data: {
   name: string;
 }): Promise<ActionResult> {

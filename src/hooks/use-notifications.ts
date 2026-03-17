@@ -1,15 +1,30 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { getUnreadCount } from "@/actions/notifications";
+import { toast } from "sonner";
 
 export function useNotifications() {
   const [unreadCount, setUnreadCount] = useState(0);
+  const prevCountRef = useRef(0);
 
   const refresh = useCallback(async () => {
     try {
       const count = await getUnreadCount();
-      setUnreadCount(count);
+      setUnreadCount((prev) => {
+        // Show toast when new notifications arrive
+        if (count > prevCountRef.current && prevCountRef.current >= 0) {
+          const newCount = count - prevCountRef.current;
+          toast.info(
+            newCount === 1
+              ? "Новое уведомление"
+              : `${newCount} новых уведомлений`,
+            { description: "Нажмите на колокольчик для просмотра" }
+          );
+        }
+        prevCountRef.current = count;
+        return count;
+      });
     } catch {
       // ignore errors
     }
@@ -17,12 +32,18 @@ export function useNotifications() {
 
   useEffect(() => {
     let cancelled = false;
+    // Initial fetch (don't show toast)
     getUnreadCount()
       .then((count) => {
-        if (!cancelled) setUnreadCount(count);
+        if (!cancelled) {
+          prevCountRef.current = count;
+          setUnreadCount(count);
+        }
       })
       .catch(() => {});
-    const interval = setInterval(refresh, 30000);
+
+    // Poll every 10 seconds for near-realtime
+    const interval = setInterval(refresh, 10000);
     return () => {
       cancelled = true;
       clearInterval(interval);
