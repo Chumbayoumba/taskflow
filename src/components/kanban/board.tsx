@@ -10,7 +10,8 @@ import { TaskDialog } from "./task-dialog";
 import { BoardFiltersBar } from "./board-filters";
 import { TASK_STATUSES, type TaskStatus } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2, Sparkles } from "lucide-react";
+import { VoiceTaskDialog } from "./voice-task-dialog";
 import type { TaskWithRelations } from "@/types";
 
 interface BoardProps {
@@ -29,6 +30,7 @@ export function Board({ projectId, members, tags }: BoardProps) {
   const { columns, setTasks, isLoading, moveTask: optimisticMove, filters, setFilters, getFilteredColumns } =
     useKanbanStore();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [voiceDialogOpen, setVoiceDialogOpen] = useState(false);
   const [projectTags, setProjectTags] = useState<{ id: string; name: string; color: string }[]>(tags ?? []);
 
   // Drag state
@@ -114,13 +116,24 @@ export function Board({ projectId, members, tags }: BoardProps) {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-semibold">Канбан-доска</h2>
-        <Button
-          onClick={() => setDialogOpen(true)}
-          size="sm"
-        >
-          <Plus className="h-4 w-4 mr-1" />
-          Новая задача
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => setVoiceDialogOpen(true)}
+            size="sm"
+            variant="outline"
+            className="gap-1.5 text-violet-600 border-violet-200 hover:bg-violet-50 dark:text-violet-400 dark:border-violet-800 dark:hover:bg-violet-950/50"
+          >
+            <Sparkles className="h-4 w-4" />
+            AI задачи
+          </Button>
+          <Button
+            onClick={() => setDialogOpen(true)}
+            size="sm"
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Новая задача
+          </Button>
+        </div>
       </div>
 
       <div className="mb-4">
@@ -153,6 +166,12 @@ export function Board({ projectId, members, tags }: BoardProps) {
         onOpenChange={handleDialogClose}
         projectId={projectId}
         members={members}
+      />
+
+      <VoiceTaskDialog
+        open={voiceDialogOpen}
+        onOpenChange={setVoiceDialogOpen}
+        projectId={projectId}
       />
     </div>
   );
