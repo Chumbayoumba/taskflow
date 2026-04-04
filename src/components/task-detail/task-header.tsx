@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Pencil, Trash2, Check, X } from "lucide-react";
+import { ArrowLeft, Pencil, Trash2, Check, X, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { updateTask, deleteTask } from "@/actions/tasks";
+import { PromptExportDialog } from "./prompt-export-dialog";
 import { TASK_STATUS_MAP, TASK_PRIORITY_MAP } from "@/lib/constants";
 import type { TaskWithDetails } from "@/types";
 
@@ -46,6 +47,7 @@ export function TaskHeader({ task, projectId, projectName }: TaskHeaderProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(task.title);
   const [isPending, startTransition] = useTransition();
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
 
   const handleSaveTitle = () => {
     if (!title.trim() || title === task.title) {
@@ -140,6 +142,15 @@ export function TaskHeader({ task, projectId, projectName }: TaskHeaderProps) {
         </div>
 
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsExportDialogOpen(true)}
+            className="gap-1"
+          >
+            <Sparkles className="h-4 w-4" />
+            Экспорт промтом
+          </Button>
           <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
             <Pencil className="h-4 w-4 mr-1" />
             Редактировать
@@ -168,6 +179,12 @@ export function TaskHeader({ task, projectId, projectName }: TaskHeaderProps) {
           </AlertDialog>
         </div>
       </div>
+
+      <PromptExportDialog
+        task={task}
+        open={isExportDialogOpen}
+        onOpenChange={setIsExportDialogOpen}
+      />
     </div>
   );
 }

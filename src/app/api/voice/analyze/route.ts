@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "qwen/qwen3-plus:free",
+          model: "qwen/qwen3.6-plus:free",
           messages: [
             { role: "system", content: SYSTEM_PROMPT },
             {
